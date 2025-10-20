@@ -13,6 +13,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const errorMessageDisplay = document.getElementById('error-message');
     const resultsDisplay = document.getElementById('results-display');
 
+    // --- Render Backend Base URL ---
+    // IMPORTANT: Replace "YOUR_RENDER_BACKEND_URL_HERE" with the actual URL
+    // of your deployed Render backend (e.g., "https://my-device-finder-api.onrender.com")
+    const RENDER_BACKEND_BASE_URL = "https://final-project-yv26.onrender.com/";
+
     // --- Placeholder Login Logic ---
     loginButton.addEventListener('click', () => {
         const username = usernameInput.value.trim();
@@ -22,7 +27,9 @@ document.addEventListener('DOMContentLoaded', () => {
             appSection.classList.remove('hidden');
             loginErrorMessage.classList.add('hidden');
             // Automatically select the first tab
-            tabButtons[0].click();
+            if (tabButtons.length > 0) {
+                tabButtons[0].click();
+            }
         } else {
             loginErrorMessage.textContent = "Please enter your name to proceed.";
             loginErrorMessage.classList.remove('hidden');
@@ -62,14 +69,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 errorMessageDisplay.classList.add('hidden');
                 loadingIndicator.classList.remove('hidden'); // Show loading
 
-                const formData = new FormData(form);
                 const requestBody = {};
-                let endpoint = '';
+                let apiPath = ''; // This will store the specific API path like '/find_phone'
 
-                // Determine endpoint and construct requestBody based on form ID
+                // Determine API path and construct requestBody based on form ID
                 switch (form.id) {
                     case 'phone-form':
-                        endpoint = '/find_phone';
+                        apiPath = '/find_phone';
                         requestBody.user_base_prompt = document.getElementById('phone_user_base_prompt').value;
                         requestBody.location = document.getElementById('phone_location').value;
                         // Common optional fields
@@ -87,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         addOptionalListField(requestBody, 'phone_preferred_brands');
                         break;
                     case 'laptop-form':
-                        endpoint = '/find_laptop';
+                        apiPath = '/find_laptop';
                         requestBody.user_base_prompt = document.getElementById('laptop_user_base_prompt').value;
                         requestBody.location = document.getElementById('laptop_location').value;
                         addOptionalField(requestBody, 'laptop_budget', 'number');
@@ -106,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         addOptionalListField(requestBody, 'laptop_preferred_brands');
                         break;
                     case 'tablet-form':
-                        endpoint = '/find_tablet';
+                        apiPath = '/find_tablet';
                         requestBody.user_base_prompt = document.getElementById('tablet_user_base_prompt').value;
                         requestBody.location = document.getElementById('tablet_location').value;
                         addOptionalField(requestBody, 'tablet_budget', 'number');
@@ -125,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         addOptionalListField(requestBody, 'tablet_preferred_brands');
                         break;
                     case 'earpiece-form':
-                        endpoint = '/find_earpiece';
+                        apiPath = '/find_earpiece';
                         requestBody.user_base_prompt = document.getElementById('earpiece_user_base_prompt').value;
                         requestBody.location = document.getElementById('earpiece_location').value;
                         addOptionalField(requestBody, 'earpiece_budget', 'number');
@@ -141,7 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         addOptionalListField(requestBody, 'earpiece_preferred_brands');
                         break;
                     case 'prebuilt_pc-form':
-                        endpoint = '/find_prebuilt_pc';
+                        apiPath = '/find_prebuilt_pc';
                         requestBody.user_base_prompt = document.getElementById('prebuilt_pc_user_base_prompt').value;
                         requestBody.location = document.getElementById('prebuilt_pc_location').value;
                         addOptionalField(requestBody, 'prebuilt_pc_budget', 'number');
@@ -157,7 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         addOptionalListField(requestBody, 'prebuilt_pc_preferred_brands');
                         break;
                     case 'pc_builder-form':
-                        endpoint = '/build_custom_pc';
+                        apiPath = '/build_custom_pc';
                         requestBody.user_base_prompt = document.getElementById('pc_builder_user_base_prompt').value;
                         requestBody.location = document.getElementById('pc_builder_location').value;
                         addOptionalField(requestBody, 'pc_builder_budget', 'number');
@@ -187,8 +193,20 @@ document.addEventListener('DOMContentLoaded', () => {
                         return;
                 }
 
+                // Check if the backend URL is set
+                if (RENDER_BACKEND_BASE_URL === "YOUR_RENDER_BACKEND_URL_HERE" || !RENDER_BACKEND_BASE_URL) {
+                    displayError("Backend URL is not configured in script.js. Please update RENDER_BACKEND_BASE_URL.");
+                    loadingIndicator.classList.add('hidden');
+                    console.error("RENDER_BACKEND_BASE_URL is not set!");
+                    return;
+                }
+
                 try {
-                    const response = await fetch(endpoint, {
+                    // Construct the full URL using the base URL and the specific API path
+                    const fullUrl = `${RENDER_BACKEND_BASE_URL}${apiPath}`;
+                    console.log("Sending request to:", fullUrl); // Debugging: check the URL in console
+
+                    const response = await fetch(fullUrl, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -223,6 +241,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (type === 'checkbox') {
                 value = element.checked;
                 // Only include if true, or if you want to explicitly send false
+                // Note: pydantic models with Optional[bool] handle None correctly.
+                // We send it if checked, otherwise it's implicitly not included (None).
                 if (value) {
                     obj[elementId.split('_').slice(1).join('_')] = value;
                 }
@@ -245,7 +265,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (element) {
             const value = element.value.trim();
             if (value !== '') {
-                obj[elementId.split('_').slice(1).join('_')] = value.split(',').map(item => item.trim());
+                // Split by comma, trim each item, and filter out any empty strings
+                obj[elementId.split('_').slice(1).join('_')] = value.split(',').map(item => item.trim()).filter(item => item !== '');
             }
         }
     }
