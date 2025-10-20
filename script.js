@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Determine API path and construct requestBody based on form ID
                 switch (form.id) {
                     case 'phone-form':
-                        apiPath = 'find_phone';
+                        apiPath = '/find_phone';
                         requestBody.user_base_prompt = document.getElementById('phone_user_base_prompt').value;
                         requestBody.location = document.getElementById('phone_location').value;
                         // Common optional fields
@@ -93,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         addOptionalListField(requestBody, 'phone_preferred_brands');
                         break;
                     case 'laptop-form':
-                        apiPath = 'find_laptop';
+                        apiPath = '/find_laptop';
                         requestBody.user_base_prompt = document.getElementById('laptop_user_base_prompt').value;
                         requestBody.location = document.getElementById('laptop_location').value;
                         addOptionalField(requestBody, 'laptop_budget', 'number');
@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         addOptionalListField(requestBody, 'laptop_preferred_brands');
                         break;
                     case 'tablet-form':
-                        apiPath = 'find_tablet';
+                        apiPath = '/find_tablet';
                         requestBody.user_base_prompt = document.getElementById('tablet_user_base_prompt').value;
                         requestBody.location = document.getElementById('tablet_location').value;
                         addOptionalField(requestBody, 'tablet_budget', 'number');
@@ -131,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         addOptionalListField(requestBody, 'tablet_preferred_brands');
                         break;
                     case 'earpiece-form':
-                        apiPath = 'find_earpiece';
+                        apiPath = '/find_earpiece';
                         requestBody.user_base_prompt = document.getElementById('earpiece_user_base_prompt').value;
                         requestBody.location = document.getElementById('earpiece_location').value;
                         addOptionalField(requestBody, 'earpiece_budget', 'number');
@@ -147,7 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         addOptionalListField(requestBody, 'earpiece_preferred_brands');
                         break;
                     case 'prebuilt_pc-form':
-                        apiPath = 'find_prebuilt_pc';
+                        apiPath = '/find_prebuilt_pc';
                         requestBody.user_base_prompt = document.getElementById('prebuilt_pc_user_base_prompt').value;
                         requestBody.location = document.getElementById('prebuilt_pc_location').value;
                         addOptionalField(requestBody, 'prebuilt_pc_budget', 'number');
@@ -163,7 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         addOptionalListField(requestBody, 'prebuilt_pc_preferred_brands');
                         break;
                     case 'pc_builder-form':
-                        apiPath = 'build_custom_pc';
+                        apiPath = '/build_custom_pc';
                         requestBody.user_base_prompt = document.getElementById('pc_builder_user_base_prompt').value;
                         requestBody.location = document.getElementById('pc_builder_location').value;
                         addOptionalField(requestBody, 'pc_builder_budget', 'number');
