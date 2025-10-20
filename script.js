@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Render Backend Base URL ---
     // IMPORTANT: Replace "YOUR_RENDER_BACKEND_URL_HERE" with the actual URL
     // of your deployed Render backend (e.g., "https://my-device-finder-api.onrender.com")
-    const RENDER_BACKEND_BASE_URL = "https://final-project-yv26.onrender.com/";
+    const RENDER_BACKEND_BASE_URL = "https://final-project-yv26.onrender.com";
 
     // --- Placeholder Login Logic ---
     loginButton.addEventListener('click', () => {
