@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DeviceFinder.AI</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <div class="container">
+    <!-- Welcome/Login Section -->
+    <section id="welcome-section" class="active">
+      <h1>Welcome to DeviceFinder.AI</h1>
+      <p>Your AI-powered assistant for finding the perfect electronic device.</p>
+      <div class="login-form">
+        <input type="text" id="username" placeholder="Enter your name" required>
+        <button id="login-button">Enter Application</button>
+      </div>
+      <p id="login-error" class="error-message"></p>
+    </section>
+
+    <!-- Main Application Section -->
+    <section id="app-section" class="hidden">
+      <header>
+        <h1>DeviceFinder.AI Assistant</h1>
+        <p>Hello, <span id="display-username"></span>! What device are you looking for today?</p>
+      </header>
+
+      <nav class="tabs">
+        <button class="tab-button active" data-tab="phone">Phone</button>
+        <button class="tab-button" data-tab="laptop">Laptop</button>
+        <button class="tab-button" data-tab="tablet">Tablet</button>
+        <button class="tab-button" data-tab="earpiece">Earpiece</button>
+        <button class="tab-button" data-tab="prebuilt_pc">Pre-built PC</button>
+        <button class="tab-button" data-tab="pc_builder">PC Builder</button>
+      </nav>
+
+      <div class="tab-content">
+        <!-- Phone Tab Content -->
+        <div id="phone-tab" class="device-form active">
+          <h2>Find a Phone</h2>
+          <form id="phone-form">
+            <label for="phone_user_base_prompt">Your Request:</label>
+            <textarea id="phone_user_base_prompt" placeholder="e.g., 'a powerful smartphone for mobile gaming'"
+              required></textarea>
+
+            <label for="phone_location">Location:</label>
+            <input type="text" id="phone_location" placeholder="e.g., 'Nairobi, Kenya'" required>
+
+            <label for="phone_budget">Max Budget ($):</label>
+            <input type="number" id="phone_budget" placeholder="e.g., 1200">
+
+            <label for="phone_brand">Brand:</label>
+            <input type="text" id="phone_brand" placeholder="e.g., 'Samsung' or 'Apple'">
+
+            <label for="phone_os_preference">OS Preference:</label>
+            <input type="text" id="phone_os_preference" placeholder="e.g., 'Android' or 'iOS'">
+
+            <label for="phone_colour">Colour:</label>
+            <input type="text" id="phone_colour" placeholder="e.g., 'Black', 'Blue'">
+
+            <label for="phone_ram">RAM:</label>
+            <input type="text" id="phone_ram" placeholder="e.g., '8GB', '12GB'">
+
+            <label for="phone_storage">Storage:</label>
+            <input type="text" id="phone_storage" placeholder="e.g., '128GB', '256GB', '512GB'">
+
+            <label for="phone_processor">Processor:</label>
+            <input type="text" id="phone_processor" placeholder="e.g., 'Snapdragon 8 Gen 2', 'A16 Bionic'">
+
+            <label for="phone_battery">Battery (mAh):</label>
+            <input type="text" id="phone_battery" placeholder="e.g., '4500mAh', 'long battery life'">
+
+            <label for="phone_display">Display:</label>
+            <input type="text" id="phone_display" placeholder="e.g., 'OLED', '6.7 inch', '120Hz'">
+
+            <label for="phone_camera_priority">Camera Priority:</label>
+            <input type="text" id="phone_camera_priority" placeholder="e.g., 'high quality photos', 'good for video'">
+
+            <label for="phone_preferred_brands">Preferred Brands (comma-separated):</label>
+            <input type="text" id="phone_preferred_brands" placeholder="e.g., 'Samsung, Xiaomi, Google'">
+
+            <button type="submit">Find Phone</button>
+          </form>
+        </div>
+
+        <!-- Laptop Tab Content -->
+        <div id="laptop-tab" class="device-form hidden">
+          <h2>Find a Laptop</h2>
+          <form id="laptop-form">
+            <label for="laptop_user_base_prompt">Your Request:</label>
+            <textarea id="laptop_user_base_prompt"
+              placeholder="e.g., 'a powerful laptop for graphic design and occasional gaming'" required></textarea>
+
+            <label for="laptop_location">Location:</label>
+            <input type="text" id="laptop_location" placeholder="e.g., 'New York, USA'" required>
+
+            <label for="laptop_budget">Max Budget ($):</label>
+            <input type="number" id="laptop_budget" placeholder="e.g., 1800">
+
+            <label for="laptop_brand">Brand:</label>
+            <input type="text" id="laptop_brand" placeholder="e.g., 'Dell' or 'Apple'">
+
+            <label for="laptop_os_preference">OS Preference:</label>
+            <input type="text" id="laptop_os_preference" placeholder="e.g., 'Windows' or 'macOS'">
+
+            <label for="laptop_colour">Colour:</label>
+            <input type="text" id="laptop_colour" placeholder="e.g., 'Silver', 'Space Gray'">
+
+            <label for="laptop_ram">RAM:</label>
+            <input type="text" id="laptop_ram" placeholder="e.g., '16GB', '32GB'">
+
+            <label for="laptop_storage">Storage:</label>
+            <input type="text" id="laptop_storage" placeholder="e.g., '512GB SSD', '1TB NVMe'">
+
+            <label for="laptop_processor">Processor:</label>
+            <input type="text" id="laptop_processor" placeholder="e.g., 'Intel Core i7', 'AMD Ryzen 9'">
+
+            <label for="laptop_gpu">GPU:</label>
+            <input type="text" id="laptop_gpu" placeholder="e.g., 'NVIDIA RTX 4070', 'Integrated'">
+
+            <label for="laptop_display">Display:</label>
+            <input type="text" id="laptop_display" placeholder="e.g., '15.6 inch OLED 4K', '144Hz'">
+
+            <label for="laptop_battery">Battery Life:</label>
+            <input type="text" id="laptop_battery" placeholder="e.g., '8+ hours', 'all-day battery'">
+
+            <label for="laptop_weight">Weight:</label>
+            <input type="text" id="laptop_weight" placeholder="e.g., 'under 1.5kg', 'lightweight'">
+
+            <label for="laptop_build">Build:</label>
+            <input type="text" id="laptop_build" placeholder="e.g., 'rugged', 'slim', 'convertible'">
+
+            <label for="laptop_usage">Usage:</label>
+            <input type="text" id="laptop_usage" placeholder="e.g., 'gaming', 'business', 'student', 'video editing'">
+
+            <label for="laptop_preferred_brands">Preferred Brands (comma-separated):</label>
+            <input type="text" id="laptop_preferred_brands" placeholder="e.g., 'HP, Lenovo, Acer'">
+
+            <button type="submit">Find Laptop</button>
+          </form>
+        </div>
+
+        <!-- Tablet Tab Content -->
+        <div id="tablet-tab" class="device-form hidden">
+          <h2>Find a Tablet</h2>
+          <form id="tablet-form">
+            <label for="tablet_user_base_prompt">Your Request:</label>
+            <textarea id="tablet_user_base_prompt"
+              placeholder="e.g., 'a tablet for drawing and note-taking with good battery life'" required></textarea>
+
+            <label for="tablet_location">Location:</label>
+            <input type="text" id="tablet_location" placeholder="e.g., 'London, UK'" required>
+
+            <label for="tablet_budget">Max Budget ($):</label>
+            <input type="number" id="tablet_budget" placeholder="e.g., 600">
+
+            <label for="tablet_brand">Brand:</label>
+            <input type="text" id="tablet_brand" placeholder="e.g., 'Apple' or 'Samsung'">
+
+            <label for="tablet_os_preference">OS Preference:</label>
+            <input type="text" id="tablet_os_preference" placeholder="e.g., 'iPadOS' or 'Android'">
+
+            <label for="tablet_colour">Colour:</label>
+            <input type="text" id="tablet_colour" placeholder="e.g., 'Space Gray', 'Pink'">
+
+            <label for="tablet_ram">RAM:</label>
+            <input type="text" id="tablet_ram" placeholder="e.g., '4GB', '8GB'">
+
+            <label for="tablet_storage">Storage:</label>
+            <input type="text" id="tablet_storage" placeholder="e.g., '64GB', '128GB'">
+
+            <label for="tablet_processor">Processor:</label>
+            <input type="text" id="tablet_processor" placeholder="e.g., 'A14 Bionic', 'Snapdragon 870'">
+
+            <label for="tablet_display">Display:</label>
+            <input type="text" id="tablet_display" placeholder="e.g., '11 inch Liquid Retina', 'AMOLED'">
+
+            <label for="tablet_battery">Battery Life:</label>
+            <input type="text" id="tablet_battery" placeholder="e.g., '10+ hours', 'long battery life'">
+
+            <label for="tablet_stylus_support">Stylus Support (true/false):</label>
+            <input type="checkbox" id="tablet_stylus_support">
+
+            <label for="tablet_connectivity">Connectivity:</label>
+            <input type="text" id="tablet_connectivity" placeholder="e.g., 'WiFi', '5G', 'LTE'">
+
+            <label for="tablet_usage">Usage:</label>
+            <input type="text" id="tablet_usage" placeholder="e.g., 'entertainment', 'productivity', 'education'">
+
+            <label for="tablet_camera_priority">Camera Priority:</label>
+            <input type="text" id="tablet_camera_priority"
+              placeholder="e.g., 'good for video calls', 'high quality rear camera'">
+
+            <label for="tablet_preferred_brands">Preferred Brands (comma-separated):</label>
+            <input type="text" id="tablet_preferred_brands" placeholder="e.g., 'Microsoft, Samsung, Apple'">
+
+            <button type="submit">Find Tablet</button>
+          </form>
+        </div>
+
+        <!-- Earpiece Tab Content -->
+        <div id="earpiece-tab" class="device-form hidden">
+          <h2>Find an Earpiece</h2>
+          <form id="earpiece-form">
+            <label for="earpiece_user_base_prompt">Your Request:</label>
+            <textarea id="earpiece_user_base_prompt"
+              placeholder="e.g., 'wireless earbuds for gym workouts with good bass'" required></textarea>
+
+            <label for="earpiece_location">Location:</label>
+            <input type="text" id="earpiece_location" placeholder="e.g., 'Berlin, Germany'" required>
+
+            <label for="earpiece_budget">Max Budget ($):</label>
+            <input type="number" id="earpiece_budget" placeholder="e.g., 200">
+
+            <label for="earpiece_brand">Brand:</label>
+            <input type="text" id="earpiece_brand" placeholder="e.g., 'Sony' or 'JBL'">
+
+            <label for="earpiece_os_preference">OS Preference:</label>
+            <input type="text" id="earpiece_os_preference" placeholder="e.g., 'iOS friendly', 'Android compatible'">
+
+            <label for="earpiece_colour">Colour:</label>
+            <input type="text" id="earpiece_colour" placeholder="e.g., 'White', 'Black'">
+
+            <label for="earpiece_type">Earpiece Type:</label>
+            <input type="text" id="earpiece_type" placeholder="e.g., 'headphones', 'earbuds', 'gaming headset'">
+
+            <label for="earpiece_connectivity">Connectivity:</label>
+            <input type="text" id="earpiece_connectivity" placeholder="e.g., 'wireless', 'Bluetooth 5.3', 'wired'">
+
+            <label for="earpiece_battery_life">Battery Life:</label>
+            <input type="text" id="earpiece_battery_life" placeholder="e.g., '8 hours+', 'long battery'">
+
+            <label for="earpiece_noise_cancellation">Noise Cancellation (yes/no/high priority):</label>
+            <input type="text" id="earpiece_noise_cancellation" placeholder="e.g., 'yes', 'no', 'high priority'">
+
+            <label for="earpiece_mic_quality">Mic Quality (high/moderate/not important):</label>
+            <input type="text" id="earpiece_mic_quality" placeholder="e.g., 'high', 'moderate', 'not important'">
+
+            <label for="earpiece_sound_profile">Sound Profile:</label>
+            <input type="text" id="earpiece_sound_profile"
+              placeholder="e.g., 'bass-heavy', 'balanced', 'vocal clarity'">
+
+            <label for="earpiece_preferred_brands">Preferred Brands (comma-separated):</label>
+            <input type="text" id="earpiece_preferred_brands" placeholder="e.g., 'Bose, Sennheiser, Apple'">
+
+            <button type="submit">Find Earpiece</button>
+          </form>
+        </div>
+
+        <!-- Pre-built PC Tab Content -->
+        <div id="prebuilt_pc-tab" class="device-form hidden">
+          <h2>Find a Pre-built PC</h2>
+          <form id="prebuilt_pc-form">
+            <label for="prebuilt_pc_user_base_prompt">Your Request:</label>
+            <textarea id="prebuilt_pc_user_base_prompt"
+              placeholder="e.g., 'a powerful pre-built gaming PC for 1440p resolution'" required></textarea>
+
+            <label for="prebuilt_pc_location">Location:</label>
+            <input type="text" id="prebuilt_pc_location" placeholder="e.g., 'Sydney, Australia'" required>
+
+            <label for="prebuilt_pc_budget">Max Budget ($):</label>
+            <input type="number" id="prebuilt_pc_budget" placeholder="e.g., 2500">
+
+            <label for="prebuilt_pc_brand">Brand:</label>
+            <input type="text" id="prebuilt_pc_brand" placeholder="e.g., 'Alienware' or 'HP Omen'">
+
+            <label for="prebuilt_pc_os_preference">OS Preference:</label>
+            <input type="text" id="prebuilt_pc_os_preference" placeholder="e.g., 'Windows 11'">
+
+            <label for="prebuilt_pc_colour">Colour:</label>
+            <input type="text" id="prebuilt_pc_colour" placeholder="e.g., 'Black', 'White with RGB'">
+
+            <label for="prebuilt_pc_usage">Usage:</label>
+            <input type="text" id="prebuilt_pc_usage"
+              placeholder="e.g., 'gaming', 'video editing', 'office', 'general'">
+
+            <label for="prebuilt_pc_cpu_preference">CPU Preference:</label>
+            <input type="text" id="prebuilt_pc_cpu_preference" placeholder="e.g., 'Intel', 'AMD', 'no preference'">
+
+            <label for="prebuilt_pc_gpu_requirement">GPU Requirement:</label>
+            <input type="text" id="prebuilt_pc_gpu_requirement"
+              placeholder="e.g., 'high', 'medium', 'low', 'integrated'">
+
+            <label for="prebuilt_pc_ram_capacity">RAM Capacity:</label>
+            <input type="text" id="prebuilt_pc_ram_capacity" placeholder="e.g., '16GB', '32GB'">
+
+            <label for="prebuilt_pc_storage_size">Storage Size:</label>
+            <input type="text" id="prebuilt_pc_storage_size" placeholder="e.g., '1TB SSD', '2TB HDD + 512GB SSD'">
+
+            <label for="prebuilt_pc_monitor_included">Monitor Included (true/false):</label>
+            <input type="checkbox" id="prebuilt_pc_monitor_included">
+
+            <label for="prebuilt_pc_preferred_brands">Preferred Brands (comma-separated):</label>
+            <input type="text" id="prebuilt_pc_preferred_brands" placeholder="e.g., 'MSI, ASUS, CyberPowerPC'">
+
+            <button type="submit">Find Pre-built PC</button>
+          </form>
+        </div>
+
+        <!-- PC Builder Tab Content -->
+        <div id="pc_builder-tab" class="device-form hidden">
+          <h2>Build a Custom PC</h2>
+          <form id="pc_builder-form">
+            <label for="pc_builder_user_base_prompt">Your Request:</label>
+            <textarea id="pc_builder_user_base_prompt"
+              placeholder="e.g., 'a custom PC build for heavy video editing and 3D rendering'" required></textarea>
+
+            <label for="pc_builder_location">Location:</label>
+            <input type="text" id="pc_builder_location" placeholder="e.g., 'Vancouver, Canada'" required>
+
+            <label for="pc_builder_budget">Max Budget ($):</label>
+            <input type="number" id="pc_builder_budget" placeholder="e.g., 3000">
+
+            <label for="pc_builder_brand">Brand (overall build preference):</label>
+            <input type="text" id="pc_builder_brand" placeholder="e.g., 'Corsair' (for case/PSU)">
+
+            <label for="pc_builder_os_preference">OS Preference:</label>
+            <input type="text" id="pc_builder_os_preference" placeholder="e.g., 'Windows 11'">
+
+            <label for="pc_builder_colour">Colour Scheme:</label>
+            <input type="text" id="pc_builder_colour" placeholder="e.g., 'White and RGB', 'Black minimalist'">
+
+            <label for="pc_builder_use_case">Use Case:</label>
+            <input type="text" id="pc_builder_use_case"
+              placeholder="e.g., 'gaming', 'video editing', '3D rendering', 'office productivity'">
+
+            <label for="pc_builder_cpu_preference">CPU Preference:</label>
+            <input type="text" id="pc_builder_cpu_preference" placeholder="e.g., 'Intel i9', 'AMD Ryzen 7'">
+
+            <label for="pc_builder_gpu_preference">GPU Preference:</label>
+            <input type="text" id="pc_builder_gpu_preference"
+              placeholder="e.g., 'NVIDIA RTX 4080', 'AMD Radeon RX 7900 XT'">
+
+            <label for="pc_builder_ram_capacity">RAM Capacity:</label>
+            <input type="text" id="pc_builder_ram_capacity" placeholder="e.g., '32GB', '64GB'">
+
+            <label for="pc_builder_ram_type">RAM Type:</label>
+            <input type="text" id="pc_builder_ram_type" placeholder="e.g., 'DDR4', 'DDR5'">
+
+            <label for="pc_builder_storage_preference">Storage Preference:</label>
+            <input type="text" id="pc_builder_storage_preference" placeholder="e.g., 'speed', 'capacity', 'balanced'">
+
+            <label for="pc_builder_ssd_size_preference">SSD Size Preference:</label>
+            <input type="text" id="pc_builder_ssd_size_preference" placeholder="e.g., '1TB NVMe', '2TB SATA SSD'">
+
+            <label for="pc_builder_power_supply_preference">Power Supply:</label>
+            <input type="text" id="pc_builder_power_supply_preference"
+              placeholder="e.g., 'modular', '80+ Gold certified'">
+
+            <label for="pc_builder_form_factor">Form Factor:</label>
+            <input type="text" id="pc_builder_form_factor" placeholder="e.g., 'ATX', 'Micro-ATX', 'Mini-ITX'">
+
+            <label for="pc_builder_cooling_type">Cooling Type:</label>
+            <input type="text" id="pc_builder_cooling_type" placeholder="e.g., 'air', 'liquid'">
+
+            <label for="pc_builder_monitor_refresh_rate">Monitor Refresh Rate:</label>
+            <input type="text" id="pc_builder_monitor_refresh_rate" placeholder="e.g., '144Hz', '240Hz'">
+
+            <label for="pc_builder_monitor_quality">Monitor Quality:</label>
+            <input type="text" id="pc_builder_monitor_quality" placeholder="e.g., 'IPS', 'VA', 'OLED'">
+
+            <label for="pc_builder_aesthetic_preference">Aesthetic Preference:</label>
+            <input type="text" id="pc_builder_aesthetic_preference"
+              placeholder="e.g., 'RGB', 'minimalist', 'industrial'">
+
+            <label for="pc_builder_peripherals_included">Peripherals Included (true/false):</label>
+            <input type="checkbox" id="pc_builder_peripherals_included">
+
+            <label for="pc_builder_preferred_brands">Preferred Brands (comma-separated for components):</label>
+            <input type="text" id="pc_builder_preferred_brands" placeholder="e.g., 'ASUS, AMD, Corsair'">
+
+            <button type="submit">Build Custom PC</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="response-area">
+        <h2>Results</h2>
+        <div id="loading-indicator" class="loading hidden">Loading...</div>
+        <div id="error-message" class="error-message hidden"></div>
+        <pre id="results-display"></pre>
+      </div>
+    </section>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+
+</html>
