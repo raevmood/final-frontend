@@ -858,7 +858,7 @@ document.addEventListener('DOMContentLoaded', () => {
             recommendations: lastFetchedRecommendations
         };
 
-        const n8nWebhookUrl = "https://karanja-kariuki-2.app.n8n.cloud/webhook-test/fc9a2009-3066-45c6-b236-5d5dd8fd12bd";
+        const n8nWebhookUrl = "https://karanja-kariuki-2.app.n8n.cloud/webhook/fc9a2009-3066-45c6-b236-5d5dd8fd12bd";
 
         try {
             // Visually indicate sending process
