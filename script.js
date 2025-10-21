@@ -264,7 +264,6 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             resultsDisplay.appendChild(errorBox);
 
-            // Still try to show partial data if available
             if (data.partial_data) {
                 const pre = document.createElement('pre');
                 pre.style.padding = '15px';
@@ -280,13 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Handle PC Builder (component-based) responses
-        if (data.components || data.build_components) {
-            displayPCBuildResults(data);
-            return;
-        }
-
-        // Handle multiple recommendations
+        // Handle recommendations array
         if (data.recommendations && Array.isArray(data.recommendations) && data.recommendations.length > 0) {
             data.recommendations.forEach((rec, index) => {
                 // Check if this is a PC build (has components array)
@@ -352,99 +345,151 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function displayPCBuildResults(data) {
-        const components = data.components || data.build_components || {};
+    function displayPCBuildRecommendation(rec, index) {
+        const buildContainer = document.createElement('div');
+        buildContainer.className = 'build-container';
+        buildContainer.style.marginBottom = '30px';
+        buildContainer.style.padding = '20px';
+        buildContainer.style.background = '#f8fafc';
+        buildContainer.style.borderRadius = '12px';
+        buildContainer.style.border = '2px solid #3b82f6';
 
-        // Create a header for the build
+        // Build header
         const buildHeader = document.createElement('div');
         buildHeader.className = 'build-header';
         buildHeader.style.marginBottom = '20px';
         buildHeader.innerHTML = `
-            <h3 style="color: #2563eb; margin-bottom: 10px;">Custom PC Build</h3>
-            ${data.total_price ? `<p style="font-size: 1.2em; font-weight: bold;">Total: ${data.total_price}</p>` : ''}
-            ${data.description ? `<p style="color: #64748b;">${data.description}</p>` : ''}
+            <h3 style="color: #2563eb; margin-bottom: 10px;">
+                ${rec.build_name || `PC Build ${index + 1}`}
+                ${rec.rank ? `<span style="font-size: 0.8em; color: #64748b;"> (Rank #${rec.rank})</span>` : ''}
+            </h3>
+            ${rec.total_price ? `<p style="font-size: 1.3em; font-weight: bold; color: #059669;">Total: KES ${rec.total_price.toLocaleString()}</p>` : ''}
+            ${rec.location ? `<p style="color: #64748b;">Location: ${rec.location}</p>` : ''}
+            ${rec.description ? `<p style="color: #475569; margin-top: 10px;">${rec.description}</p>` : ''}
         `;
-        resultsDisplay.appendChild(buildHeader);
+        buildContainer.appendChild(buildHeader);
 
-        // Display each component
-        Object.entries(components).forEach(([componentType, componentData]) => {
-            if (!componentData || typeof componentData !== 'object') return;
+        // Components
+        if (rec.components && Array.isArray(rec.components)) {
+            rec.components.forEach(component => {
+                const componentCard = createComponentCard(component);
+                buildContainer.appendChild(componentCard);
+            });
+        }
 
-            const card = document.createElement('div');
-            card.className = 'result-card component-card';
-            card.style.marginBottom = '15px';
-
-            // Component header
-            const header = document.createElement('div');
-            header.className = 'result-header';
-
-            const title = document.createElement('div');
-            title.className = 'result-title';
-            title.style.color = '#1e40af';
-            title.textContent = `${formatLabel(componentType)}: ${componentData.name || componentData.model || 'N/A'}`;
-
-            const price = document.createElement('div');
-            price.className = 'result-price';
-            price.textContent = componentData.price || componentData.estimated_price || 'Price N/A';
-
-            header.appendChild(title);
-            header.appendChild(price);
-            card.appendChild(header);
-
-            // Description
-            if (componentData.description || componentData.summary) {
-                const desc = document.createElement('div');
-                desc.className = 'result-description';
-                desc.textContent = componentData.description || componentData.summary;
-                card.appendChild(desc);
-            }
-
-            // Specs
-            const specs = componentData.specs || componentData.specifications || {};
-            if (Object.keys(specs).length > 0) {
-                const specsContainer = document.createElement('div');
-                specsContainer.className = 'result-specs';
-
-                Object.entries(specs).forEach(([key, value]) => {
-                    if (value !== null && value !== undefined && value !== '') {
-                        const specItem = document.createElement('div');
-                        specItem.className = 'spec-item';
-                        specItem.innerHTML = `
-                            <span class="spec-label">${formatLabel(key)}</span>
-                            <span class="spec-value">${value}</span>
-                        `;
-                        specsContainer.appendChild(specItem);
-                    }
-                });
-
-                card.appendChild(specsContainer);
-            }
-
-            // Purchase links
-            if (componentData.url || componentData.link || componentData.purchase_link) {
-                const linksContainer = document.createElement('div');
-                linksContainer.className = 'result-links';
-                const anchor = document.createElement('a');
-                anchor.className = 'result-link';
-                anchor.href = componentData.url || componentData.link || componentData.purchase_link;
-                anchor.target = '_blank';
-                anchor.rel = 'noopener noreferrer';
-                anchor.textContent = 'View Component';
-                linksContainer.appendChild(anchor);
-                card.appendChild(linksContainer);
-            }
-
-            resultsDisplay.appendChild(card);
-        });
-
-        // Add build notes
-        if (data.build_notes || data.notes || data.compatibility_notes) {
+        // Build notes
+        if (rec.build_notes || rec.notes || rec.compatibility_notes) {
             const notes = document.createElement('div');
             notes.className = 'ai-note';
-            notes.style.marginTop = '20px';
-            notes.innerHTML = `<strong>Build Notes:</strong> ${data.build_notes || data.notes || data.compatibility_notes}`;
-            resultsDisplay.appendChild(notes);
+            notes.style.marginTop = '15px';
+            notes.innerHTML = `<strong>Build Notes:</strong> ${rec.build_notes || rec.notes || rec.compatibility_notes}`;
+            buildContainer.appendChild(notes);
         }
+
+        resultsDisplay.appendChild(buildContainer);
+    }
+
+    function createComponentCard(component) {
+        const card = document.createElement('div');
+        card.className = 'result-card component-card';
+        card.style.marginBottom = '15px';
+        card.style.background = '#ffffff';
+
+        // Component header
+        const header = document.createElement('div');
+        header.className = 'result-header';
+
+        const title = document.createElement('div');
+        title.className = 'result-title';
+        title.style.color = '#1e40af';
+        title.innerHTML = `<strong>${component.category || 'Component'}:</strong> ${component.name || component.model || 'N/A'}`;
+
+        const price = document.createElement('div');
+        price.className = 'result-price';
+        price.textContent = component.price ? `KES ${component.price.toLocaleString()}` : 'Price N/A';
+
+        header.appendChild(title);
+        header.appendChild(price);
+        card.appendChild(header);
+
+        // Description
+        if (component.description || component.summary) {
+            const desc = document.createElement('div');
+            desc.className = 'result-description';
+            desc.textContent = component.description || component.summary;
+            card.appendChild(desc);
+        }
+
+        // Specs
+        const specs = component.specs || component.specifications || {};
+        if (Object.keys(specs).length > 0) {
+            const specsContainer = document.createElement('div');
+            specsContainer.className = 'result-specs';
+
+            Object.entries(specs).forEach(([key, value]) => {
+                if (value !== null && value !== undefined && value !== '') {
+                    const specItem = document.createElement('div');
+                    specItem.className = 'spec-item';
+                    specItem.innerHTML = `
+                        <span class="spec-label">${formatLabel(key)}</span>
+                        <span class="spec-value">${value}</span>
+                    `;
+                    specsContainer.appendChild(specItem);
+                }
+            });
+
+            card.appendChild(specsContainer);
+        }
+
+        // Purchase links
+        const linksContainer = document.createElement('div');
+        linksContainer.className = 'result-links';
+        linksContainer.style.display = 'flex';
+        linksContainer.style.gap = '10px';
+        linksContainer.style.flexWrap = 'wrap';
+
+        // Online vendor
+        if (component.vendor_online && component.vendor_online.url) {
+            const onlineLink = document.createElement('a');
+            onlineLink.className = 'result-link';
+            onlineLink.href = component.vendor_online.url;
+            onlineLink.target = '_blank';
+            onlineLink.rel = 'noopener noreferrer';
+            onlineLink.textContent = `🛒 ${component.vendor_online.store || 'Buy Online'}`;
+            linksContainer.appendChild(onlineLink);
+        }
+
+        // Physical vendor info
+        if (component.vendor_physical) {
+            const physicalInfo = document.createElement('div');
+            physicalInfo.style.padding = '10px';
+            physicalInfo.style.background = '#f1f5f9';
+            physicalInfo.style.borderRadius = '6px';
+            physicalInfo.style.fontSize = '0.9em';
+            physicalInfo.innerHTML = `
+                <strong>🏪 Physical Store:</strong> ${component.vendor_physical.store || 'N/A'}<br>
+                ${component.vendor_physical.contact_phone ? `📞 ${component.vendor_physical.contact_phone}<br>` : ''}
+                ${component.vendor_physical.contact_email ? `📧 ${component.vendor_physical.contact_email}` : ''}
+            `;
+            linksContainer.appendChild(physicalInfo);
+        }
+
+        // Fallback to generic URL/link
+        if (!component.vendor_online && (component.url || component.link)) {
+            const link = document.createElement('a');
+            link.className = 'result-link';
+            link.href = component.url || component.link;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.textContent = 'View Component';
+            linksContainer.appendChild(link);
+        }
+
+        if (linksContainer.children.length > 0) {
+            card.appendChild(linksContainer);
+        }
+
+        return card;
     }
 
     function createResultCard(rec, index) {
