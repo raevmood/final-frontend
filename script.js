@@ -248,34 +248,171 @@ document.addEventListener('DOMContentLoaded', () => {
     function displayResults(data) {
         resultsDisplay.innerHTML = '';
 
-        // Handle different response structures
-        if (data.recommendations && Array.isArray(data.recommendations)) {
-            // Multiple recommendations
+        // Handle error responses
+        if (data.error) {
+            displayError(data.error);
+            return;
+        }
+
+        // Handle PC Builder (component-based) responses
+        if (data.components || data.build_components) {
+            displayPCBuildResults(data);
+            return;
+        }
+
+        // Handle multiple recommendations
+        if (data.recommendations && Array.isArray(data.recommendations) && data.recommendations.length > 0) {
             data.recommendations.forEach((rec, index) => {
                 const card = createResultCard(rec, index);
                 resultsDisplay.appendChild(card);
             });
-        } else if (data.recommendation) {
-            // Single recommendation
+        }
+        // Handle single recommendation
+        else if (data.recommendation && typeof data.recommendation === 'object') {
             const card = createResultCard(data.recommendation, 0);
             resultsDisplay.appendChild(card);
-        } else {
-            // Fallback to raw JSON
+        }
+        // Handle direct device data (fallback)
+        else if (data.name || data.title || data.device_name) {
+            const card = createResultCard(data, 0);
+            resultsDisplay.appendChild(card);
+        }
+        // Last resort: show raw JSON
+        else {
             const pre = document.createElement('pre');
             pre.style.padding = '20px';
             pre.style.background = '#f7fafc';
             pre.style.borderRadius = '8px';
             pre.style.overflow = 'auto';
+            pre.style.maxHeight = '500px';
             pre.textContent = JSON.stringify(data, null, 2);
             resultsDisplay.appendChild(pre);
         }
 
-        // Add AI note if present
-        if (data.ai_note || data.note) {
+        // Add AI note/summary if present
+        if (data.ai_note || data.note || data.summary) {
             const note = document.createElement('div');
             note.className = 'ai-note';
-            note.innerHTML = `<strong>AI Assistant Note:</strong> ${data.ai_note || data.note}`;
+            note.innerHTML = `<strong>AI Assistant Note:</strong> ${data.ai_note || data.note || data.summary}`;
             resultsDisplay.appendChild(note);
+        }
+
+        // Add metadata info if present
+        if (data.metadata) {
+            const meta = document.createElement('div');
+            meta.className = 'metadata-info';
+            meta.style.marginTop = '20px';
+            meta.style.padding = '15px';
+            meta.style.background = '#f0f4f8';
+            meta.style.borderRadius = '8px';
+            meta.style.fontSize = '0.9em';
+            meta.style.color = '#64748b';
+
+            let metaText = '';
+            if (data.metadata.generated_at) {
+                metaText += `Generated: ${new Date(data.metadata.generated_at).toLocaleString()} | `;
+            }
+            if (data.metadata.status) {
+                metaText += `Status: ${data.metadata.status}`;
+            }
+
+            meta.textContent = metaText;
+            resultsDisplay.appendChild(meta);
+        }
+    }
+
+    function displayPCBuildResults(data) {
+        const components = data.components || data.build_components || {};
+
+        // Create a header for the build
+        const buildHeader = document.createElement('div');
+        buildHeader.className = 'build-header';
+        buildHeader.style.marginBottom = '20px';
+        buildHeader.innerHTML = `
+            <h3 style="color: #2563eb; margin-bottom: 10px;">Custom PC Build</h3>
+            ${data.total_price ? `<p style="font-size: 1.2em; font-weight: bold;">Total: ${data.total_price}</p>` : ''}
+            ${data.description ? `<p style="color: #64748b;">${data.description}</p>` : ''}
+        `;
+        resultsDisplay.appendChild(buildHeader);
+
+        // Display each component
+        Object.entries(components).forEach(([componentType, componentData]) => {
+            if (!componentData || typeof componentData !== 'object') return;
+
+            const card = document.createElement('div');
+            card.className = 'result-card component-card';
+            card.style.marginBottom = '15px';
+
+            // Component header
+            const header = document.createElement('div');
+            header.className = 'result-header';
+
+            const title = document.createElement('div');
+            title.className = 'result-title';
+            title.style.color = '#1e40af';
+            title.textContent = `${formatLabel(componentType)}: ${componentData.name || componentData.model || 'N/A'}`;
+
+            const price = document.createElement('div');
+            price.className = 'result-price';
+            price.textContent = componentData.price || componentData.estimated_price || 'Price N/A';
+
+            header.appendChild(title);
+            header.appendChild(price);
+            card.appendChild(header);
+
+            // Description
+            if (componentData.description || componentData.summary) {
+                const desc = document.createElement('div');
+                desc.className = 'result-description';
+                desc.textContent = componentData.description || componentData.summary;
+                card.appendChild(desc);
+            }
+
+            // Specs
+            const specs = componentData.specs || componentData.specifications || {};
+            if (Object.keys(specs).length > 0) {
+                const specsContainer = document.createElement('div');
+                specsContainer.className = 'result-specs';
+
+                Object.entries(specs).forEach(([key, value]) => {
+                    if (value !== null && value !== undefined && value !== '') {
+                        const specItem = document.createElement('div');
+                        specItem.className = 'spec-item';
+                        specItem.innerHTML = `
+                            <span class="spec-label">${formatLabel(key)}</span>
+                            <span class="spec-value">${value}</span>
+                        `;
+                        specsContainer.appendChild(specItem);
+                    }
+                });
+
+                card.appendChild(specsContainer);
+            }
+
+            // Purchase links
+            if (componentData.url || componentData.link || componentData.purchase_link) {
+                const linksContainer = document.createElement('div');
+                linksContainer.className = 'result-links';
+                const anchor = document.createElement('a');
+                anchor.className = 'result-link';
+                anchor.href = componentData.url || componentData.link || componentData.purchase_link;
+                anchor.target = '_blank';
+                anchor.rel = 'noopener noreferrer';
+                anchor.textContent = 'View Component';
+                linksContainer.appendChild(anchor);
+                card.appendChild(linksContainer);
+            }
+
+            resultsDisplay.appendChild(card);
+        });
+
+        // Add build notes
+        if (data.build_notes || data.notes || data.compatibility_notes) {
+            const notes = document.createElement('div');
+            notes.className = 'ai-note';
+            notes.style.marginTop = '20px';
+            notes.innerHTML = `<strong>Build Notes:</strong> ${data.build_notes || data.notes || data.compatibility_notes}`;
+            resultsDisplay.appendChild(notes);
         }
     }
 
