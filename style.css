@@ -336,6 +336,93 @@ header p {
   display: block;
 }
 
+/* Email Recommendations Section */
+.email-recommendations-section {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.email-recommendations-section.hidden {
+  display: none;
+}
+
+.email-recommendations-section h3 {
+  color: #2d3748;
+  font-size: 1.4em;
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+.email-input-group {
+  display: flex;
+  gap: 10px;
+  max-width: 500px;
+  margin: 0 auto 15px auto;
+}
+
+.email-input-group input[type="email"] {
+  flex-grow: 1;
+  padding: 12px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 1em;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+.email-input-group input[type="email"]:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.email-input-group button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 10px;
+  font-size: 1em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+  white-space: nowrap;
+  /* Prevent button text from wrapping */
+}
+
+.email-input-group button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* Success Message (similar to error-message) */
+.success-message {
+  display: none;
+  /* Hidden by default */
+  background: #e6ffed;
+  /* Light green */
+  border-left: 4px solid #38a169;
+  /* Darker green */
+  color: #2f855a;
+  /* Even darker green text */
+  padding: 16px 20px;
+  border-radius: 8px;
+  margin-top: 20px;
+  font-weight: 500;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.success-message.active {
+  display: block;
+}
+
 #results-display {
   background: white;
   border-radius: 12px;

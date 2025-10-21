@@ -12,6 +12,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadingIndicator = document.getElementById('loading-indicator');
     const errorMessageDisplay = document.getElementById('error-message');
     const resultsDisplay = document.getElementById('results-display');
+    const emailRecommendationsSection = document.getElementById('email-recommendations-section');
+    const customerEmailInput = document.getElementById('customer-email');
+    const sendEmailButton = document.getElementById('send-email-button');
+    const emailSendConfirmation = document.getElementById('email-send-confirmation');
+    const emailSendError = document.getElementById('email-send-error');
+
+    let lastFetchedRecommendations = null; // To store the last recommendations
 
     const RENDER_BACKEND_BASE_URL = "https://final-project-yv26.onrender.com";
 
@@ -247,7 +254,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function displayResults(data) {
         resultsDisplay.innerHTML = '';
-
+        lastFetchedRecommendations = data; // Store the full data for email sending
+        emailRecommendationsSection.classList.remove('hidden'); // Show email section
+        emailSendConfirmation.classList.remove('active'); // Clear previous messages
+        emailSendError.classList.remove('active'); // Clear previous messages
         // Handle error responses
         if (data.error || data.status === 'failed') {
             const errorBox = document.createElement('div');
@@ -579,4 +589,68 @@ document.addEventListener('DOMContentLoaded', () => {
             .replace(/_/g, ' ')
             .replace(/\b\w/g, l => l.toUpperCase());
     }
+    // Email Recommendations Logic
+    sendEmailButton.addEventListener('click', async () => {
+        const customerEmail = customerEmailInput.value.trim();
+
+        emailSendConfirmation.classList.remove('active');
+        emailSendError.classList.remove('active');
+
+        if (!customerEmail) {
+            emailSendError.textContent = "Please enter an email address.";
+            emailSendError.classList.add('active');
+            return;
+        }
+
+        // Simple email format validation (more robust regex can be used)
+        if (!/\S+@\S+\.\S+/.test(customerEmail)) {
+            emailSendError.textContent = "Please enter a valid email address.";
+            emailSendError.classList.add('active');
+            return;
+        }
+
+        if (!lastFetchedRecommendations) {
+            emailSendError.textContent = "No recommendations to send. Please find some first.";
+            emailSendError.classList.add('active');
+            return;
+        }
+
+        // Prepare the payload to send to n8n webhook
+        const emailPayload = {
+            recipientEmail: customerEmail,
+            recommendations: lastFetchedRecommendations // Send the full JSON object
+        };
+
+        const n8nWebhookUrl = "https://karanja-kariuki-2.app.n8n.cloud/webhook/fc9a2009-3066-45c6-b236-5d5dd8fd12bd";
+
+        try {
+            // Visually indicate sending process if desired (e.g., disable button, show spinner)
+            sendEmailButton.disabled = true;
+            sendEmailButton.textContent = 'Sending...';
+
+            const response = await fetch(n8nWebhookUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(emailPayload),
+            });
+
+            if (response.ok) {
+                emailSendConfirmation.textContent = `Recommendations sent successfully to ${customerEmail}!`;
+                emailSendConfirmation.classList.add('active');
+                customerEmailInput.value = ''; // Clear the input field
+            } else {
+                const errorText = await response.text();
+                emailSendError.textContent = `Failed to send recommendations. Server responded with: ${response.status} - ${errorText.substring(0, 100)}...`;
+                emailSendError.classList.add('active');
+            }
+        } catch (error) {
+            emailSendError.textContent = `Network error: Could not reach the email sending service. ${error.message}`;
+            emailSendError.classList.add('active');
+        } finally {
+            sendEmailButton.disabled = false;
+            sendEmailButton.textContent = 'Send to Email';
+        }
+    });
 });
