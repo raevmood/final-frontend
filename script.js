@@ -897,4 +897,243 @@ document.addEventListener('DOMContentLoaded', () => {
             sendEmailButton.textContent = 'Send to Email';
         }
     });
+
+    function initializeChatbot() {
+        const chatbotContainer = document.getElementById('chatbot-container');
+        const chatbotToggleBtn = document.getElementById('chatbot-toggle-btn');
+        const chatbotWindow = document.getElementById('chatbot-window');
+        const chatbotMinimizeBtn = document.getElementById('chatbot-minimize-btn');
+        const chatbotMessages = document.getElementById('chatbot-messages');
+        const chatbotInput = document.getElementById('chatbot-input');
+        const chatbotSendBtn = document.getElementById('chatbot-send-btn');
+        const chatbotTyping = document.getElementById('chatbot-typing');
+
+        const CHATBOT_API_URL = 'https://final-project-yv26.onrender.com/chat';
+        let isWelcomeMessageShown = false;
+
+        // Check if user is logged in and show/hide chatbot
+        function updateChatbotVisibility() {
+            const token = localStorage.getItem('access_token');
+            if (token) {
+                chatbotContainer.classList.remove('chatbot-hidden');
+            } else {
+                chatbotContainer.classList.add('chatbot-hidden');
+            }
+        }
+
+        // Call this on page load and after login/logout
+        updateChatbotVisibility();
+
+        // Listen for login/logout events
+        const originalLogout = window.logout;
+        window.logout = function () {
+            if (originalLogout) originalLogout();
+            updateChatbotVisibility();
+            // Reset chatbot state
+            chatbotWindow.classList.remove('active');
+            chatbotToggleBtn.classList.remove('active');
+            isWelcomeMessageShown = false;
+            chatbotMessages.innerHTML = '';
+        };
+
+        // Toggle chatbot window
+        chatbotToggleBtn.addEventListener('click', () => {
+            const isActive = chatbotWindow.classList.toggle('active');
+            chatbotToggleBtn.classList.toggle('active');
+
+            if (isActive && !isWelcomeMessageShown) {
+                showWelcomeMessage();
+                isWelcomeMessageShown = true;
+            }
+        });
+
+        // Minimize button
+        chatbotMinimizeBtn.addEventListener('click', () => {
+            chatbotWindow.classList.remove('active');
+            chatbotToggleBtn.classList.remove('active');
+        });
+
+        // Show welcome message
+        function showWelcomeMessage() {
+            const welcomeText = "Hello! 👋 I'm your DeviceFinder assistant. I can help you with device recommendations, answer questions about our products, and guide you through filling out the forms. How can I assist you today?";
+            addMessage(welcomeText, 'bot');
+        }
+
+        // Add message to chat
+        function addMessage(text, sender = 'bot') {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chatbot-message ${sender}`;
+
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = sender === 'bot' ? '🤖' : (localStorage.getItem('username')?.charAt(0).toUpperCase() || 'U');
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble';
+            bubble.textContent = text;
+
+            const timestamp = document.createElement('div');
+            timestamp.className = 'message-timestamp';
+            timestamp.textContent = getCurrentTime();
+
+            contentDiv.appendChild(bubble);
+            contentDiv.appendChild(timestamp);
+
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(contentDiv);
+
+            chatbotMessages.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        // Get current time formatted
+        function getCurrentTime() {
+            const now = new Date();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            return `${hours}:${minutes}`;
+        }
+
+        // Scroll to bottom of messages
+        function scrollToBottom() {
+            chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+        }
+
+        // Show typing indicator
+        function showTypingIndicator() {
+            chatbotTyping.style.display = 'flex';
+            scrollToBottom();
+        }
+
+        // Hide typing indicator
+        function hideTypingIndicator() {
+            chatbotTyping.style.display = 'none';
+        }
+
+        // Show error message in chat
+        function showChatError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'chatbot-error-message';
+            errorDiv.textContent = message;
+            chatbotMessages.appendChild(errorDiv);
+            scrollToBottom();
+
+            // Remove error after 5 seconds
+            setTimeout(() => {
+                errorDiv.remove();
+            }, 5000);
+        }
+
+        // Send message to backend
+        async function sendMessage(message) {
+            if (!message.trim()) return;
+
+            // Add user message to chat
+            addMessage(message, 'user');
+            chatbotInput.value = '';
+            adjustTextareaHeight();
+
+            // Disable input while processing
+            chatbotInput.disabled = true;
+            chatbotSendBtn.disabled = true;
+            showTypingIndicator();
+
+            try {
+                const accessToken = localStorage.getItem('access_token');
+
+                if (!accessToken) {
+                    throw new Error('Not authenticated. Please login first.');
+                }
+
+                const response = await fetch(CHATBOT_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify({
+                        message: message
+                    })
+                });
+
+                // Handle rate limiting
+                if (response.status === 429) {
+                    const errorData = await response.json();
+                    const retryAfter = response.headers.get('Retry-After') || 'a few';
+                    throw new Error(`Rate limit exceeded. Please wait ${retryAfter} seconds before sending another message.`);
+                }
+
+                // Handle authentication errors
+                if (response.status === 401) {
+                    throw new Error('Session expired. Please login again.');
+                }
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || `Error: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                // Add bot response to chat
+                if (data.response) {
+                    addMessage(data.response, 'bot');
+                } else {
+                    throw new Error('Invalid response from server');
+                }
+
+            } catch (error) {
+                console.error('Chat error:', error);
+                showChatError(error.message || 'Failed to send message. Please try again.');
+            } finally {
+                hideTypingIndicator();
+                chatbotInput.disabled = false;
+                chatbotSendBtn.disabled = false;
+                chatbotInput.focus();
+            }
+        }
+
+        // Handle send button click
+        chatbotSendBtn.addEventListener('click', () => {
+            const message = chatbotInput.value.trim();
+            if (message) {
+                sendMessage(message);
+            }
+        });
+
+        // Handle Enter key (Shift+Enter for new line)
+        chatbotInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                const message = chatbotInput.value.trim();
+                if (message) {
+                    sendMessage(message);
+                }
+            }
+        });
+
+        // Auto-resize textarea
+        function adjustTextareaHeight() {
+            chatbotInput.style.height = 'auto';
+            chatbotInput.style.height = Math.min(chatbotInput.scrollHeight, 100) + 'px';
+        }
+
+        chatbotInput.addEventListener('input', adjustTextareaHeight);
+
+        // Prevent textarea from being too small
+        chatbotInput.addEventListener('focus', adjustTextareaHeight);
+    }
+
+    // Initialize chatbot when DOM is loaded
+    // If you're adding this to the existing script.js DOMContentLoaded listener,
+    // just call initializeChatbot() at the end of that listener
+    // Otherwise, use this:
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeChatbot);
+    } else {
+        initializeChatbot();
+    }
 });
