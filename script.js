@@ -289,8 +289,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // Handle multiple recommendations
         if (data.recommendations && Array.isArray(data.recommendations) && data.recommendations.length > 0) {
             data.recommendations.forEach((rec, index) => {
-                const card = createResultCard(rec, index);
-                resultsDisplay.appendChild(card);
+                // Check if this is a PC build (has components array)
+                if (rec.components && Array.isArray(rec.components)) {
+                    displayPCBuildRecommendation(rec, index);
+                } else {
+                    const card = createResultCard(rec, index);
+                    resultsDisplay.appendChild(card);
+                }
             });
         }
         // Handle single recommendation
