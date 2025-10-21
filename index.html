@@ -5,23 +5,549 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DeviceFinder.AI</title>
-  <link rel="stylesheet" href="style.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      color: #1a202c;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* Welcome Section */
+    #welcome-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 80vh;
+      text-align: center;
+      color: white;
+    }
+
+    #welcome-section.hidden {
+      display: none;
+    }
+
+    .welcome-content {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 60px 40px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      max-width: 500px;
+    }
+
+    #welcome-section h1 {
+      font-size: 3em;
+      margin-bottom: 20px;
+      font-weight: 700;
+      background: linear-gradient(to right, #fff, #e0e7ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    #welcome-section>p {
+      font-size: 1.2em;
+      margin-bottom: 40px;
+      opacity: 0.95;
+    }
+
+    .login-form {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      width: 100%;
+    }
+
+    .login-form input[type="text"] {
+      padding: 16px 20px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 12px;
+      font-size: 1.1em;
+      background: rgba(255, 255, 255, 0.95);
+      transition: all 0.3s ease;
+    }
+
+    .login-form input[type="text"]:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .login-form button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 16px 32px;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.1em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .login-form button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    }
+
+    /* Main App Section */
+    #app-section {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+    }
+
+    #app-section.hidden {
+      display: none;
+    }
+
+    header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 40px;
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+
+    header p {
+      font-size: 1.2em;
+      opacity: 0.95;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      background: #f7fafc;
+      padding: 20px 20px 0;
+      gap: 10px;
+      overflow-x: auto;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .tab-button {
+      background: transparent;
+      color: #64748b;
+      padding: 14px 24px;
+      border: none;
+      border-radius: 12px 12px 0 0;
+      cursor: pointer;
+      font-size: 1em;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+      position: relative;
+    }
+
+    .tab-button:hover {
+      background: rgba(102, 126, 234, 0.1);
+      color: #667eea;
+    }
+
+    .tab-button.active {
+      background: white;
+      color: #667eea;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .tab-button.active::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #667eea, #764ba2);
+    }
+
+    /* Form Section */
+    .tab-content {
+      padding: 40px;
+      background: #ffffff;
+    }
+
+    .device-form {
+      display: none;
+    }
+
+    .device-form.active {
+      display: block;
+    }
+
+    .device-form h2 {
+      color: #667eea;
+      font-size: 2em;
+      margin-bottom: 30px;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .device-form form {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .form-group.full-width {
+      grid-column: 1 / -1;
+    }
+
+    .device-form label {
+      font-weight: 600;
+      color: #2d3748;
+      font-size: 0.95em;
+    }
+
+    .device-form input[type="text"],
+    .device-form input[type="number"],
+    .device-form textarea {
+      padding: 12px 16px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 1em;
+      transition: all 0.3s ease;
+      font-family: inherit;
+    }
+
+    .device-form input:focus,
+    .device-form textarea:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .device-form textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 0;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      accent-color: #667eea;
+    }
+
+    .device-form button[type="submit"] {
+      grid-column: 1 / -1;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 16px 32px;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.1em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 20px;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .device-form button[type="submit"]:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    }
+
+    /* Response Area */
+    .response-area {
+      background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+      padding: 40px;
+      border-top: 3px solid #e2e8f0;
+    }
+
+    .response-area h2 {
+      color: #2d3748;
+      font-size: 1.8em;
+      margin-bottom: 24px;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 40px;
+      font-size: 1.1em;
+      color: #667eea;
+    }
+
+    .loading.active {
+      display: block;
+    }
+
+    .loading::before {
+      content: '';
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      border: 4px solid #e2e8f0;
+      border-top-color: #667eea;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 16px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .error-message {
+      display: none;
+      background: #fee;
+      border-left: 4px solid #e53e3e;
+      color: #c53030;
+      padding: 16px 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-weight: 500;
+    }
+
+    .error-message.active {
+      display: block;
+    }
+
+    #results-display {
+      background: white;
+      border-radius: 12px;
+      padding: 0;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      max-height: 600px;
+      overflow-y: auto;
+    }
+
+    #results-display:empty::before {
+      content: 'Submit a form to see results here';
+      display: block;
+      text-align: center;
+      padding: 60px 20px;
+      color: #a0aec0;
+      font-style: italic;
+    }
+
+    /* Result Cards */
+    .result-card {
+      border-bottom: 1px solid #e2e8f0;
+      padding: 24px;
+    }
+
+    .result-card:last-child {
+      border-bottom: none;
+    }
+
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: 16px;
+      gap: 16px;
+    }
+
+    .result-title {
+      font-size: 1.3em;
+      font-weight: 700;
+      color: #2d3748;
+      flex: 1;
+    }
+
+    .result-price {
+      font-size: 1.4em;
+      font-weight: 700;
+      color: #667eea;
+      white-space: nowrap;
+    }
+
+    .result-description {
+      color: #4a5568;
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+
+    .result-specs {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .spec-item {
+      background: #f7fafc;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.9em;
+    }
+
+    .spec-label {
+      font-weight: 600;
+      color: #667eea;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .spec-value {
+      color: #2d3748;
+    }
+
+    .result-links {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .result-link {
+      display: inline-block;
+      padding: 10px 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      font-size: 0.9em;
+    }
+
+    .result-link:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .ai-note {
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      border-left: 4px solid #f59e0b;
+      padding: 16px 20px;
+      border-radius: 8px;
+      margin-top: 20px;
+      font-size: 0.95em;
+      color: #78350f;
+    }
+
+    .ai-note strong {
+      display: block;
+      margin-bottom: 8px;
+      color: #92400e;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+
+      #welcome-section h1 {
+        font-size: 2em;
+      }
+
+      .welcome-content {
+        padding: 40px 30px;
+      }
+
+      header {
+        padding: 30px 20px;
+      }
+
+      header h1 {
+        font-size: 1.8em;
+      }
+
+      .tabs {
+        padding: 15px 15px 0;
+      }
+
+      .tab-content {
+        padding: 20px;
+      }
+
+      .device-form form {
+        grid-template-columns: 1fr;
+      }
+
+      .response-area {
+        padding: 20px;
+      }
+
+      .result-header {
+        flex-direction: column;
+      }
+
+      .result-specs {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Scrollbar Styling */
+    ::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e0;
+      border-radius: 5px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #a0aec0;
+    }
+  </style>
 </head>
 
 <body>
   <div class="container">
-    <!-- Welcome/Login Section -->
+    <!-- Welcome Section -->
     <section id="welcome-section" class="active">
-      <h1>Welcome to DeviceFinder.AI</h1>
-      <p>Your AI-powered assistant for finding the perfect electronic device.</p>
-      <div class="login-form">
-        <input type="text" id="username" placeholder="Enter your name" required>
-        <button id="login-button">Enter Application</button>
+      <div class="welcome-content">
+        <h1>DeviceFinder.AI</h1>
+        <p>Your AI-powered assistant for finding the perfect electronic device.</p>
+        <div class="login-form">
+          <input type="text" id="username" placeholder="Enter your name" required>
+          <button id="login-button">Enter Application</button>
+        </div>
+        <p id="login-error" class="error-message"></p>
       </div>
-      <p id="login-error" class="error-message"></p>
     </section>
 
-    <!-- Main Application Section -->
+    <!-- Main Application -->
     <section id="app-section" class="hidden">
       <header>
         <h1>DeviceFinder.AI Assistant</h1>
@@ -38,340 +564,424 @@
       </nav>
 
       <div class="tab-content">
-        <!-- Phone Tab Content -->
+        <!-- Phone Form -->
         <div id="phone-tab" class="device-form active">
           <h2>Find a Phone</h2>
           <form id="phone-form">
-            <label for="phone_user_base_prompt">Your Request:</label>
-            <textarea id="phone_user_base_prompt" placeholder="e.g., 'a powerful smartphone for mobile gaming'"
-              required></textarea>
-
-            <label for="phone_location">Location:</label>
-            <input type="text" id="phone_location" placeholder="e.g., 'Nairobi, Kenya'" required>
-
-            <label for="phone_budget">Max Budget ($):</label>
-            <input type="number" id="phone_budget" placeholder="e.g., 1200">
-
-            <label for="phone_brand">Brand:</label>
-            <input type="text" id="phone_brand" placeholder="e.g., 'Samsung' or 'Apple'">
-
-            <label for="phone_os_preference">OS Preference:</label>
-            <input type="text" id="phone_os_preference" placeholder="e.g., 'Android' or 'iOS'">
-
-            <label for="phone_colour">Colour:</label>
-            <input type="text" id="phone_colour" placeholder="e.g., 'Black', 'Blue'">
-
-            <label for="phone_ram">RAM:</label>
-            <input type="text" id="phone_ram" placeholder="e.g., 'DeezNuts', '12GB'">
-
-            <label for="phone_storage">Storage:</label>
-            <input type="text" id="phone_storage" placeholder="e.g., '128GB', '256GB', '512GB'">
-
-            <label for="phone_processor">Processor:</label>
-            <input type="text" id="phone_processor" placeholder="e.g., 'Snapdragon 8 Gen 2', 'A16 Bionic'">
-
-            <label for="phone_battery">Battery (mAh):</label>
-            <input type="text" id="phone_battery" placeholder="e.g., '4500mAh', 'long battery life'">
-
-            <label for="phone_display">Display:</label>
-            <input type="text" id="phone_display" placeholder="e.g., 'OLED', '6.7 inch', '120Hz'">
-
-            <label for="phone_camera_priority">Camera Priority:</label>
-            <input type="text" id="phone_camera_priority" placeholder="e.g., 'high quality photos', 'good for video'">
-
-            <label for="phone_preferred_brands">Preferred Brands (comma-separated):</label>
-            <input type="text" id="phone_preferred_brands" placeholder="e.g., 'Samsung, Xiaomi, Google'">
-
+            <div class="form-group full-width">
+              <label for="phone_user_base_prompt">Your Request:</label>
+              <textarea id="phone_user_base_prompt" placeholder="e.g., 'a powerful smartphone for mobile gaming'"
+                required></textarea>
+            </div>
+            <div class="form-group full-width">
+              <label for="phone_location">Location:</label>
+              <input type="text" id="phone_location" placeholder="e.g., 'Nairobi, Kenya'" required>
+            </div>
+            <div class="form-group">
+              <label for="phone_budget">Max Budget ($):</label>
+              <input type="number" id="phone_budget" placeholder="e.g., 1200">
+            </div>
+            <div class="form-group">
+              <label for="phone_brand">Brand:</label>
+              <input type="text" id="phone_brand" placeholder="e.g., 'Samsung' or 'Apple'">
+            </div>
+            <div class="form-group">
+              <label for="phone_os_preference">OS Preference:</label>
+              <input type="text" id="phone_os_preference" placeholder="e.g., 'Android' or 'iOS'">
+            </div>
+            <div class="form-group">
+              <label for="phone_colour">Colour:</label>
+              <input type="text" id="phone_colour" placeholder="e.g., 'Black', 'Blue'">
+            </div>
+            <div class="form-group">
+              <label for="phone_ram">RAM:</label>
+              <input type="text" id="phone_ram" placeholder="e.g., '8GB', '12GB'">
+            </div>
+            <div class="form-group">
+              <label for="phone_storage">Storage:</label>
+              <input type="text" id="phone_storage" placeholder="e.g., '128GB', '256GB'">
+            </div>
+            <div class="form-group">
+              <label for="phone_processor">Processor:</label>
+              <input type="text" id="phone_processor" placeholder="e.g., 'Snapdragon 8 Gen 2'">
+            </div>
+            <div class="form-group">
+              <label for="phone_battery">Battery (mAh):</label>
+              <input type="text" id="phone_battery" placeholder="e.g., '4500mAh'">
+            </div>
+            <div class="form-group">
+              <label for="phone_display">Display:</label>
+              <input type="text" id="phone_display" placeholder="e.g., 'OLED', '6.7 inch'">
+            </div>
+            <div class="form-group">
+              <label for="phone_camera_priority">Camera Priority:</label>
+              <input type="text" id="phone_camera_priority" placeholder="e.g., 'high quality photos'">
+            </div>
+            <div class="form-group full-width">
+              <label for="phone_preferred_brands">Preferred Brands (comma-separated):</label>
+              <input type="text" id="phone_preferred_brands" placeholder="e.g., 'Samsung, Xiaomi, Google'">
+            </div>
             <button type="submit">Find Phone</button>
           </form>
         </div>
 
-        <!-- Laptop Tab Content -->
-        <div id="laptop-tab" class="device-form hidden">
+        <!-- Laptop Form -->
+        <div id="laptop-tab" class="device-form">
           <h2>Find a Laptop</h2>
           <form id="laptop-form">
-            <label for="laptop_user_base_prompt">Your Request:</label>
-            <textarea id="laptop_user_base_prompt"
-              placeholder="e.g., 'a powerful laptop for graphic design and occasional gaming'" required></textarea>
-
-            <label for="laptop_location">Location:</label>
-            <input type="text" id="laptop_location" placeholder="e.g., 'New York, USA'" required>
-
-            <label for="laptop_budget">Max Budget ($):</label>
-            <input type="number" id="laptop_budget" placeholder="e.g., 1800">
-
-            <label for="laptop_brand">Brand:</label>
-            <input type="text" id="laptop_brand" placeholder="e.g., 'Dell' or 'Apple'">
-
-            <label for="laptop_os_preference">OS Preference:</label>
-            <input type="text" id="laptop_os_preference" placeholder="e.g., 'Windows' or 'macOS'">
-
-            <label for="laptop_colour">Colour:</label>
-            <input type="text" id="laptop_colour" placeholder="e.g., 'Silver', 'Space Gray'">
-
-            <label for="laptop_ram">RAM:</label>
-            <input type="text" id="laptop_ram" placeholder="e.g., '16GB', '32GB'">
-
-            <label for="laptop_storage">Storage:</label>
-            <input type="text" id="laptop_storage" placeholder="e.g., '512GB SSD', '1TB NVMe'">
-
-            <label for="laptop_processor">Processor:</label>
-            <input type="text" id="laptop_processor" placeholder="e.g., 'Intel Core i7', 'AMD Ryzen 9'">
-
-            <label for="laptop_gpu">GPU:</label>
-            <input type="text" id="laptop_gpu" placeholder="e.g., 'NVIDIA RTX 4070', 'Integrated'">
-
-            <label for="laptop_display">Display:</label>
-            <input type="text" id="laptop_display" placeholder="e.g., '15.6 inch OLED 4K', '144Hz'">
-
-            <label for="laptop_battery">Battery Life:</label>
-            <input type="text" id="laptop_battery" placeholder="e.g., '8+ hours', 'all-day battery'">
-
-            <label for="laptop_weight">Weight:</label>
-            <input type="text" id="laptop_weight" placeholder="e.g., 'under 1.5kg', 'lightweight'">
-
-            <label for="laptop_build">Build:</label>
-            <input type="text" id="laptop_build" placeholder="e.g., 'rugged', 'slim', 'convertible'">
-
-            <label for="laptop_usage">Usage:</label>
-            <input type="text" id="laptop_usage" placeholder="e.g., 'gaming', 'business', 'student', 'video editing'">
-
-            <label for="laptop_preferred_brands">Preferred Brands (comma-separated):</label>
-            <input type="text" id="laptop_preferred_brands" placeholder="e.g., 'HP, Lenovo, Acer'">
-
+            <div class="form-group full-width">
+              <label for="laptop_user_base_prompt">Your Request:</label>
+              <textarea id="laptop_user_base_prompt" placeholder="e.g., 'a powerful laptop for graphic design'"
+                required></textarea>
+            </div>
+            <div class="form-group full-width">
+              <label for="laptop_location">Location:</label>
+              <input type="text" id="laptop_location" placeholder="e.g., 'New York, USA'" required>
+            </div>
+            <div class="form-group">
+              <label for="laptop_budget">Max Budget ($):</label>
+              <input type="number" id="laptop_budget" placeholder="e.g., 1800">
+            </div>
+            <div class="form-group">
+              <label for="laptop_brand">Brand:</label>
+              <input type="text" id="laptop_brand" placeholder="e.g., 'Dell' or 'Apple'">
+            </div>
+            <div class="form-group">
+              <label for="laptop_os_preference">OS Preference:</label>
+              <input type="text" id="laptop_os_preference" placeholder="e.g., 'Windows' or 'macOS'">
+            </div>
+            <div class="form-group">
+              <label for="laptop_colour">Colour:</label>
+              <input type="text" id="laptop_colour" placeholder="e.g., 'Silver'">
+            </div>
+            <div class="form-group">
+              <label for="laptop_ram">RAM:</label>
+              <input type="text" id="laptop_ram" placeholder="e.g., '16GB'">
+            </div>
+            <div class="form-group">
+              <label for="laptop_storage">Storage:</label>
+              <input type="text" id="laptop_storage" placeholder="e.g., '512GB SSD'">
+            </div>
+            <div class="form-group">
+              <label for="laptop_processor">Processor:</label>
+              <input type="text" id="laptop_processor" placeholder="e.g., 'Intel Core i7'">
+            </div>
+            <div class="form-group">
+              <label for="laptop_gpu">GPU:</label>
+              <input type="text" id="laptop_gpu" placeholder="e.g., 'NVIDIA RTX 4070'">
+            </div>
+            <div class="form-group">
+              <label for="laptop_display">Display:</label>
+              <input type="text" id="laptop_display" placeholder="e.g., '15.6 inch OLED'">
+            </div>
+            <div class="form-group">
+              <label for="laptop_battery">Battery Life:</label>
+              <input type="text" id="laptop_battery" placeholder="e.g., '8+ hours'">
+            </div>
+            <div class="form-group">
+              <label for="laptop_weight">Weight:</label>
+              <input type="text" id="laptop_weight" placeholder="e.g., 'under 1.5kg'">
+            </div>
+            <div class="form-group">
+              <label for="laptop_build">Build:</label>
+              <input type="text" id="laptop_build" placeholder="e.g., 'slim'">
+            </div>
+            <div class="form-group">
+              <label for="laptop_usage">Usage:</label>
+              <input type="text" id="laptop_usage" placeholder="e.g., 'gaming'">
+            </div>
+            <div class="form-group full-width">
+              <label for="laptop_preferred_brands">Preferred Brands:</label>
+              <input type="text" id="laptop_preferred_brands" placeholder="e.g., 'HP, Lenovo'">
+            </div>
             <button type="submit">Find Laptop</button>
           </form>
         </div>
 
-        <!-- Tablet Tab Content -->
-        <div id="tablet-tab" class="device-form hidden">
+        <!-- Tablet Form -->
+        <div id="tablet-tab" class="device-form">
           <h2>Find a Tablet</h2>
           <form id="tablet-form">
-            <label for="tablet_user_base_prompt">Your Request:</label>
-            <textarea id="tablet_user_base_prompt"
-              placeholder="e.g., 'a tablet for drawing and note-taking with good battery life'" required></textarea>
-
-            <label for="tablet_location">Location:</label>
-            <input type="text" id="tablet_location" placeholder="e.g., 'London, UK'" required>
-
-            <label for="tablet_budget">Max Budget ($):</label>
-            <input type="number" id="tablet_budget" placeholder="e.g., 600">
-
-            <label for="tablet_brand">Brand:</label>
-            <input type="text" id="tablet_brand" placeholder="e.g., 'Apple' or 'Samsung'">
-
-            <label for="tablet_os_preference">OS Preference:</label>
-            <input type="text" id="tablet_os_preference" placeholder="e.g., 'iPadOS' or 'Android'">
-
-            <label for="tablet_colour">Colour:</label>
-            <input type="text" id="tablet_colour" placeholder="e.g., 'Space Gray', 'Pink'">
-
-            <label for="tablet_ram">RAM:</label>
-            <input type="text" id="tablet_ram" placeholder="e.g., '4GB', '8GB'">
-
-            <label for="tablet_storage">Storage:</label>
-            <input type="text" id="tablet_storage" placeholder="e.g., '64GB', '128GB'">
-
-            <label for="tablet_processor">Processor:</label>
-            <input type="text" id="tablet_processor" placeholder="e.g., 'A14 Bionic', 'Snapdragon 870'">
-
-            <label for="tablet_display">Display:</label>
-            <input type="text" id="tablet_display" placeholder="e.g., '11 inch Liquid Retina', 'AMOLED'">
-
-            <label for="tablet_battery">Battery Life:</label>
-            <input type="text" id="tablet_battery" placeholder="e.g., '10+ hours', 'long battery life'">
-
-            <label for="tablet_stylus_support">Stylus Support (true/false):</label>
-            <input type="checkbox" id="tablet_stylus_support">
-
-            <label for="tablet_connectivity">Connectivity:</label>
-            <input type="text" id="tablet_connectivity" placeholder="e.g., 'WiFi', '5G', 'LTE'">
-
-            <label for="tablet_usage">Usage:</label>
-            <input type="text" id="tablet_usage" placeholder="e.g., 'entertainment', 'productivity', 'education'">
-
-            <label for="tablet_camera_priority">Camera Priority:</label>
-            <input type="text" id="tablet_camera_priority"
-              placeholder="e.g., 'good for video calls', 'high quality rear camera'">
-
-            <label for="tablet_preferred_brands">Preferred Brands (comma-separated):</label>
-            <input type="text" id="tablet_preferred_brands" placeholder="e.g., 'Microsoft, Samsung, Apple'">
-
+            <div class="form-group full-width">
+              <label for="tablet_user_base_prompt">Your Request:</label>
+              <textarea id="tablet_user_base_prompt" placeholder="e.g., 'a tablet for drawing and note-taking'"
+                required></textarea>
+            </div>
+            <div class="form-group full-width">
+              <label for="tablet_location">Location:</label>
+              <input type="text" id="tablet_location" placeholder="e.g., 'London, UK'" required>
+            </div>
+            <div class="form-group">
+              <label for="tablet_budget">Max Budget ($):</label>
+              <input type="number" id="tablet_budget" placeholder="e.g., 600">
+            </div>
+            <div class="form-group">
+              <label for="tablet_brand">Brand:</label>
+              <input type="text" id="tablet_brand" placeholder="e.g., 'Apple'">
+            </div>
+            <div class="form-group">
+              <label for="tablet_os_preference">OS Preference:</label>
+              <input type="text" id="tablet_os_preference" placeholder="e.g., 'iPadOS'">
+            </div>
+            <div class="form-group">
+              <label for="tablet_colour">Colour:</label>
+              <input type="text" id="tablet_colour" placeholder="e.g., 'Space Gray'">
+            </div>
+            <div class="form-group">
+              <label for="tablet_ram">RAM:</label>
+              <input type="text" id="tablet_ram" placeholder="e.g., '8GB'">
+            </div>
+            <div class="form-group">
+              <label for="tablet_storage">Storage:</label>
+              <input type="text" id="tablet_storage" placeholder="e.g., '128GB'">
+            </div>
+            <div class="form-group">
+              <label for="tablet_processor">Processor:</label>
+              <input type="text" id="tablet_processor" placeholder="e.g., 'A14 Bionic'">
+            </div>
+            <div class="form-group">
+              <label for="tablet_display">Display:</label>
+              <input type="text" id="tablet_display" placeholder="e.g., '11 inch'">
+            </div>
+            <div class="form-group">
+              <label for="tablet_battery">Battery Life:</label>
+              <input type="text" id="tablet_battery" placeholder="e.g., '10+ hours'">
+            </div>
+            <div class="form-group">
+              <label for="tablet_connectivity">Connectivity:</label>
+              <input type="text" id="tablet_connectivity" placeholder="e.g., 'WiFi'">
+            </div>
+            <div class="form-group">
+              <label for="tablet_usage">Usage:</label>
+              <input type="text" id="tablet_usage" placeholder="e.g., 'entertainment'">
+            </div>
+            <div class="form-group">
+              <label for="tablet_camera_priority">Camera Priority:</label>
+              <input type="text" id="tablet_camera_priority" placeholder="e.g., 'good for video calls'">
+            </div>
+            <div class="form-group full-width checkbox-group">
+              <input type="checkbox" id="tablet_stylus_support">
+              <label for="tablet_stylus_support">Stylus Support</label>
+            </div>
+            <div class="form-group full-width">
+              <label for="tablet_preferred_brands">Preferred Brands:</label>
+              <input type="text" id="tablet_preferred_brands" placeholder="e.g., 'Microsoft, Samsung'">
+            </div>
             <button type="submit">Find Tablet</button>
           </form>
         </div>
 
-        <!-- Earpiece Tab Content -->
-        <div id="earpiece-tab" class="device-form hidden">
+        <!-- Earpiece Form -->
+        <div id="earpiece-tab" class="device-form">
           <h2>Find an Earpiece</h2>
           <form id="earpiece-form">
-            <label for="earpiece_user_base_prompt">Your Request:</label>
-            <textarea id="earpiece_user_base_prompt"
-              placeholder="e.g., 'wireless earbuds for gym workouts with good bass'" required></textarea>
-
-            <label for="earpiece_location">Location:</label>
-            <input type="text" id="earpiece_location" placeholder="e.g., 'Berlin, Germany'" required>
-
-            <label for="earpiece_budget">Max Budget ($):</label>
-            <input type="number" id="earpiece_budget" placeholder="e.g., 200">
-
-            <label for="earpiece_brand">Brand:</label>
-            <input type="text" id="earpiece_brand" placeholder="e.g., 'Sony' or 'JBL'">
-
-            <label for="earpiece_os_preference">OS Preference:</label>
-            <input type="text" id="earpiece_os_preference" placeholder="e.g., 'iOS friendly', 'Android compatible'">
-
-            <label for="earpiece_colour">Colour:</label>
-            <input type="text" id="earpiece_colour" placeholder="e.g., 'White', 'Black'">
-
-            <label for="earpiece_type">Earpiece Type:</label>
-            <input type="text" id="earpiece_type" placeholder="e.g., 'headphones', 'earbuds', 'gaming headset'">
-
-            <label for="earpiece_connectivity">Connectivity:</label>
-            <input type="text" id="earpiece_connectivity" placeholder="e.g., 'wireless', 'Bluetooth 5.3', 'wired'">
-
-            <label for="earpiece_battery_life">Battery Life:</label>
-            <input type="text" id="earpiece_battery_life" placeholder="e.g., '8 hours+', 'long battery'">
-
-            <label for="earpiece_noise_cancellation">Noise Cancellation (yes/no/high priority):</label>
-            <input type="text" id="earpiece_noise_cancellation" placeholder="e.g., 'yes', 'no', 'high priority'">
-
-            <label for="earpiece_mic_quality">Mic Quality (high/moderate/not important):</label>
-            <input type="text" id="earpiece_mic_quality" placeholder="e.g., 'high', 'moderate', 'not important'">
-
-            <label for="earpiece_sound_profile">Sound Profile:</label>
-            <input type="text" id="earpiece_sound_profile"
-              placeholder="e.g., 'bass-heavy', 'balanced', 'vocal clarity'">
-
-            <label for="earpiece_preferred_brands">Preferred Brands (comma-separated):</label>
-            <input type="text" id="earpiece_preferred_brands" placeholder="e.g., 'Bose, Sennheiser, Apple'">
-
+            <div class="form-group full-width">
+              <label for="earpiece_user_base_prompt">Your Request:</label>
+              <textarea id="earpiece_user_base_prompt" placeholder="e.g., 'wireless earbuds for gym workouts'"
+                required></textarea>
+            </div>
+            <div class="form-group full-width">
+              <label for="earpiece_location">Location:</label>
+              <input type="text" id="earpiece_location" placeholder="e.g., 'Berlin, Germany'" required>
+            </div>
+            <div class="form-group">
+              <label for="earpiece_budget">Max Budget ($):</label>
+              <input type="number" id="earpiece_budget" placeholder="e.g., 200">
+            </div>
+            <div class="form-group">
+              <label for="earpiece_brand">Brand:</label>
+              <input type="text" id="earpiece_brand" placeholder="e.g., 'Sony'">
+            </div>
+            <div class="form-group">
+              <label for="earpiece_os_preference">OS Preference:</label>
+              <input type="text" id="earpiece_os_preference" placeholder="e.g., 'iOS friendly'">
+            </div>
+            <div class="form-group">
+              <label for="earpiece_colour">Colour:</label>
+              <input type="text" id="earpiece_colour" placeholder="e.g., 'White'">
+            </div>
+            <div class="form-group">
+              <label for="earpiece_type">Earpiece Type:</label>
+              <input type="text" id="earpiece_type" placeholder="e.g., 'earbuds'">
+            </div>
+            <div class="form-group">
+              <label for="earpiece_connectivity">Connectivity:</label>
+              <input type="text" id="earpiece_connectivity" placeholder="e.g., 'Bluetooth 5.3'">
+            </div>
+            <div class="form-group">
+              <label for="earpiece_battery_life">Battery Life:</label>
+              <input type="text" id="earpiece_battery_life" placeholder="e.g., '8 hours+'">
+            </div>
+            <div class="form-group">
+              <label for="earpiece_noise_cancellation">Noise Cancellation:</label>
+              <input type="text" id="earpiece_noise_cancellation" placeholder="e.g., 'yes'">
+            </div>
+            <div class="form-group">
+              <label for="earpiece_mic_quality">Mic Quality:</label>
+              <input type="text" id="earpiece_mic_quality" placeholder="e.g., 'high'">
+            </div>
+            <div class="form-group">
+              <label for="earpiece_sound_profile">Sound Profile:</label>
+              <input type="text" id="earpiece_sound_profile" placeholder="e.g., 'bass-heavy'">
+            </div>
+            <div class="form-group full-width">
+              <label for="earpiece_preferred_brands">Preferred Brands:</label>
+              <input type="text" id="earpiece_preferred_brands" placeholder="e.g., 'Bose, Sennheiser'">
+            </div>
             <button type="submit">Find Earpiece</button>
           </form>
         </div>
 
-        <!-- Pre-built PC Tab Content -->
-        <div id="prebuilt_pc-tab" class="device-form hidden">
+        <!-- Pre-built PC Form -->
+        <div id="prebuilt_pc-tab" class="device-form">
           <h2>Find a Pre-built PC</h2>
           <form id="prebuilt_pc-form">
-            <label for="prebuilt_pc_user_base_prompt">Your Request:</label>
-            <textarea id="prebuilt_pc_user_base_prompt"
-              placeholder="e.g., 'a powerful pre-built gaming PC for 1440p resolution'" required></textarea>
-
-            <label for="prebuilt_pc_location">Location:</label>
-            <input type="text" id="prebuilt_pc_location" placeholder="e.g., 'Sydney, Australia'" required>
-
-            <label for="prebuilt_pc_budget">Max Budget ($):</label>
-            <input type="number" id="prebuilt_pc_budget" placeholder="e.g., 2500">
-
-            <label for="prebuilt_pc_brand">Brand:</label>
-            <input type="text" id="prebuilt_pc_brand" placeholder="e.g., 'Alienware' or 'HP Omen'">
-
-            <label for="prebuilt_pc_os_preference">OS Preference:</label>
-            <input type="text" id="prebuilt_pc_os_preference" placeholder="e.g., 'Windows 11'">
-
-            <label for="prebuilt_pc_colour">Colour:</label>
-            <input type="text" id="prebuilt_pc_colour" placeholder="e.g., 'Black', 'White with RGB'">
-
-            <label for="prebuilt_pc_usage">Usage:</label>
-            <input type="text" id="prebuilt_pc_usage"
-              placeholder="e.g., 'gaming', 'video editing', 'office', 'general'">
-
-            <label for="prebuilt_pc_cpu_preference">CPU Preference:</label>
-            <input type="text" id="prebuilt_pc_cpu_preference" placeholder="e.g., 'Intel', 'AMD', 'no preference'">
-
-            <label for="prebuilt_pc_gpu_requirement">GPU Requirement:</label>
-            <input type="text" id="prebuilt_pc_gpu_requirement"
-              placeholder="e.g., 'high', 'medium', 'low', 'integrated'">
-
-            <label for="prebuilt_pc_ram_capacity">RAM Capacity:</label>
-            <input type="text" id="prebuilt_pc_ram_capacity" placeholder="e.g., '16GB', '32GB'">
-
-            <label for="prebuilt_pc_storage_size">Storage Size:</label>
-            <input type="text" id="prebuilt_pc_storage_size" placeholder="e.g., '1TB SSD', '2TB HDD + 512GB SSD'">
-
-            <label for="prebuilt_pc_monitor_included">Monitor Included (true/false):</label>
-            <input type="checkbox" id="prebuilt_pc_monitor_included">
-
-            <label for="prebuilt_pc_preferred_brands">Preferred Brands (comma-separated):</label>
-            <input type="text" id="prebuilt_pc_preferred_brands" placeholder="e.g., 'MSI, ASUS, CyberPowerPC'">
-
+            <div class="form-group full-width">
+              <label for="prebuilt_pc_user_base_prompt">Your Request:</label>
+              <textarea id="prebuilt_pc_user_base_prompt" placeholder="e.g., 'a powerful pre-built gaming PC'"
+                required></textarea>
+            </div>
+            <div class="form-group full-width">
+              <label for="prebuilt_pc_location">Location:</label>
+              <input type="text" id="prebuilt_pc_location" placeholder="e.g., 'Sydney, Australia'" required>
+            </div>
+            <div class="form-group">
+              <label for="prebuilt_pc_budget">Max Budget ($):</label>
+              <input type="number" id="prebuilt_pc_budget" placeholder="e.g., 2500">
+            </div>
+            <div class="form-group">
+              <label for="prebuilt_pc_brand">Brand:</label>
+              <input type="text" id="prebuilt_pc_brand" placeholder="e.g., 'Alienware'">
+            </div>
+            <div class="form-group">
+              <label for="prebuilt_pc_os_preference">OS Preference:</label>
+              <input type="text" id="prebuilt_pc_os_preference" placeholder="e.g., 'Windows 11'">
+            </div>
+            <div class="form-group">
+              <label for="prebuilt_pc_colour">Colour:</label>
+              <input type="text" id="prebuilt_pc_colour" placeholder="e.g., 'Black'">
+            </div>
+            <div class="form-group">
+              <label for="prebuilt_pc_usage">Usage:</label>
+              <input type="text" id="prebuilt_pc_usage" placeholder="e.g., 'gaming'">
+            </div>
+            <div class="form-group">
+              <label for="prebuilt_pc_cpu_preference">CPU Preference:</label>
+              <input type="text" id="prebuilt_pc_cpu_preference" placeholder="e.g., 'Intel'">
+            </div>
+            <div class="form-group">
+              <label for="prebuilt_pc_gpu_requirement">GPU Requirement:</label>
+              <input type="text" id="prebuilt_pc_gpu_requirement" placeholder="e.g., 'high'">
+            </div>
+            <div class="form-group">
+              <label for="prebuilt_pc_ram_capacity">RAM Capacity:</label>
+              <input type="text" id="prebuilt_pc_ram_capacity" placeholder="e.g., '16GB'">
+            </div>
+            <div class="form-group">
+              <label for="prebuilt_pc_storage_size">Storage Size:</label>
+              <input type="text" id="prebuilt_pc_storage_size" placeholder="e.g., '1TB SSD'">
+            </div>
+            <div class="form-group full-width checkbox-group">
+              <input type="checkbox" id="prebuilt_pc_monitor_included">
+              <label for="prebuilt_pc_monitor_included">Monitor Included</label>
+            </div>
+            <div class="form-group full-width">
+              <label for="prebuilt_pc_preferred_brands">Preferred Brands:</label>
+              <input type="text" id="prebuilt_pc_preferred_brands" placeholder="e.g., 'MSI, ASUS'">
+            </div>
             <button type="submit">Find Pre-built PC</button>
           </form>
         </div>
 
-        <!-- PC Builder Tab Content -->
-        <div id="pc_builder-tab" class="device-form hidden">
+        <!-- PC Builder Form -->
+        <div id="pc_builder-tab" class="device-form">
           <h2>Build a Custom PC</h2>
           <form id="pc_builder-form">
-            <label for="pc_builder_user_base_prompt">Your Request:</label>
-            <textarea id="pc_builder_user_base_prompt"
-              placeholder="e.g., 'a custom PC build for heavy video editing and 3D rendering'" required></textarea>
-
-            <label for="pc_builder_location">Location:</label>
-            <input type="text" id="pc_builder_location" placeholder="e.g., 'Vancouver, Canada'" required>
-
-            <label for="pc_builder_budget">Max Budget ($):</label>
-            <input type="number" id="pc_builder_budget" placeholder="e.g., 3000">
-
-            <label for="pc_builder_brand">Brand (overall build preference):</label>
-            <input type="text" id="pc_builder_brand" placeholder="e.g., 'Corsair' (for case/PSU)">
-
-            <label for="pc_builder_os_preference">OS Preference:</label>
-            <input type="text" id="pc_builder_os_preference" placeholder="e.g., 'Windows 11'">
-
-            <label for="pc_builder_colour">Colour Scheme:</label>
-            <input type="text" id="pc_builder_colour" placeholder="e.g., 'White and RGB', 'Black minimalist'">
-
-            <label for="pc_builder_use_case">Use Case:</label>
-            <input type="text" id="pc_builder_use_case"
-              placeholder="e.g., 'gaming', 'video editing', '3D rendering', 'office productivity'">
-
-            <label for="pc_builder_cpu_preference">CPU Preference:</label>
-            <input type="text" id="pc_builder_cpu_preference" placeholder="e.g., 'Intel i9', 'AMD Ryzen 7'">
-
-            <label for="pc_builder_gpu_preference">GPU Preference:</label>
-            <input type="text" id="pc_builder_gpu_preference"
-              placeholder="e.g., 'NVIDIA RTX 4080', 'AMD Radeon RX 7900 XT'">
-
-            <label for="pc_builder_ram_capacity">RAM Capacity:</label>
-            <input type="text" id="pc_builder_ram_capacity" placeholder="e.g., '32GB', '64GB'">
-
-            <label for="pc_builder_ram_type">RAM Type:</label>
-            <input type="text" id="pc_builder_ram_type" placeholder="e.g., 'DDR4', 'DDR5'">
-
-            <label for="pc_builder_storage_preference">Storage Preference:</label>
-            <input type="text" id="pc_builder_storage_preference" placeholder="e.g., 'speed', 'capacity', 'balanced'">
-
-            <label for="pc_builder_ssd_size_preference">SSD Size Preference:</label>
-            <input type="text" id="pc_builder_ssd_size_preference" placeholder="e.g., '1TB NVMe', '2TB SATA SSD'">
-
-            <label for="pc_builder_power_supply_preference">Power Supply:</label>
-            <input type="text" id="pc_builder_power_supply_preference"
-              placeholder="e.g., 'modular', '80+ Gold certified'">
-
-            <label for="pc_builder_form_factor">Form Factor:</label>
-            <input type="text" id="pc_builder_form_factor" placeholder="e.g., 'ATX', 'Micro-ATX', 'Mini-ITX'">
-
-            <label for="pc_builder_cooling_type">Cooling Type:</label>
-            <input type="text" id="pc_builder_cooling_type" placeholder="e.g., 'air', 'liquid'">
-
-            <label for="pc_builder_monitor_refresh_rate">Monitor Refresh Rate:</label>
-            <input type="text" id="pc_builder_monitor_refresh_rate" placeholder="e.g., '144Hz', '240Hz'">
-
-            <label for="pc_builder_monitor_quality">Monitor Quality:</label>
-            <input type="text" id="pc_builder_monitor_quality" placeholder="e.g., 'IPS', 'VA', 'OLED'">
-
-            <label for="pc_builder_aesthetic_preference">Aesthetic Preference:</label>
-            <input type="text" id="pc_builder_aesthetic_preference"
-              placeholder="e.g., 'RGB', 'minimalist', 'industrial'">
-
-            <label for="pc_builder_peripherals_included">Peripherals Included (true/false):</label>
-            <input type="checkbox" id="pc_builder_peripherals_included">
-
-            <label for="pc_builder_preferred_brands">Preferred Brands (comma-separated for components):</label>
-            <input type="text" id="pc_builder_preferred_brands" placeholder="e.g., 'ASUS, AMD, Corsair'">
-
+            <div class="form-group full-width">
+              <label for="pc_builder_user_base_prompt">Your Request:</label>
+              <textarea id="pc_builder_user_base_prompt" placeholder="e.g., 'a custom PC build for video editing'"
+                required></textarea>
+            </div>
+            <div class="form-group full-width">
+              <label for="pc_builder_location">Location:</label>
+              <input type="text" id="pc_builder_location" placeholder="e.g., 'Vancouver, Canada'" required>
+            </div>
+            <div class="form-group">
+              <label for="pc_builder_budget">Max Budget ($):</label>
+              <input type="number" id="pc_builder_budget" placeholder="e.g., 3000">
+            </div>
+            <div class="form-group">
+              <label for="pc_builder_brand">Brand Preference:</label>
+              <input type="text" id="pc_builder_brand" placeholder="e.g., 'Corsair'">
+            </div>
+            <div class="form-group">
+              <label for="pc_builder_os_preference">OS Preference:</label>
+              <input type="text" id="pc_builder_os_preference" placeholder="e.g., 'Windows 11'">
+            </div>
+            <div class="form-group">
+              <label for="pc_builder_colour">Colour Scheme:</label>
+              <input type="text" id="pc_builder_colour" placeholder="e.g., 'White and RGB'">
+            </div>
+            <div class="form-group">
+              <label for="pc_builder_use_case">Use Case:</label>
+              <input type="text" id="pc_builder_use_case" placeholder="e.g., 'gaming'">
+            </div>
+            <div class="form-group">
+              <label for="pc_builder_cpu_preference">CPU Preference:</label>
+              <input type="text" id="pc_builder_cpu_preference" placeholder="e.g., 'Intel i9'">
+            </div>
+            <div class="form-group">
+              <label for="pc_builder_gpu_preference">GPU Preference:</label>
+              <input type="text" id="pc_builder_gpu_preference" placeholder="e.g., 'NVIDIA RTX 4080'">
+            </div>
+            <div class="form-group">
+              <label for="pc_builder_ram_capacity">RAM Capacity:</label>
+              <input type="text" id="pc_builder_ram_capacity" placeholder="e.g., '32GB'">
+            </div>
+            <div class="form-group">
+              <label for="pc_builder_ram_type">RAM Type:</label>
+              <input type="text" id="pc_builder_ram_type" placeholder="e.g., 'DDR5'">
+            </div>
+            <div class="form-group">
+              <label for="pc_builder_storage_preference">Storage Preference:</label>
+              <input type="text" id="pc_builder_storage_preference" placeholder="e.g., 'speed'">
+            </div>
+            <div class="form-group">
+              <label for="pc_builder_ssd_size_preference">SSD Size:</label>
+              <input type="text" id="pc_builder_ssd_size_preference" placeholder="e.g., '1TB NVMe'">
+            </div>
+            <div class="form-group">
+              <label for="pc_builder_power_supply_preference">Power Supply:</label>
+              <input type="text" id="pc_builder_power_supply_preference" placeholder="e.g., 'modular'">
+            </div>
+            <div class="form-group">
+              <label for="pc_builder_form_factor">Form Factor:</label>
+              <input type="text" id="pc_builder_form_factor" placeholder="e.g., 'ATX'">
+            </div>
+            <div class="form-group">
+              <label for="pc_builder_cooling_type">Cooling Type:</label>
+              <input type="text" id="pc_builder_cooling_type" placeholder="e.g., 'liquid'">
+            </div>
+            <div class="form-group">
+              <label for="pc_builder_monitor_refresh_rate">Monitor Refresh Rate:</label>
+              <input type="text" id="pc_builder_monitor_refresh_rate" placeholder="e.g., '144Hz'">
+            </div>
+            <div class="form-group">
+              <label for="pc_builder_monitor_quality">Monitor Quality:</label>
+              <input type="text" id="pc_builder_monitor_quality" placeholder="e.g., 'IPS'">
+            </div>
+            <div class="form-group">
+              <label for="pc_builder_aesthetic_preference">Aesthetic:</label>
+              <input type="text" id="pc_builder_aesthetic_preference" placeholder="e.g., 'RGB'">
+            </div>
+            <div class="form-group full-width checkbox-group">
+              <input type="checkbox" id="pc_builder_peripherals_included">
+              <label for="pc_builder_peripherals_included">Peripherals Included</label>
+            </div>
+            <div class="form-group full-width">
+              <label for="pc_builder_preferred_brands">Preferred Brands:</label>
+              <input type="text" id="pc_builder_preferred_brands" placeholder="e.g., 'ASUS, AMD'">
+            </div>
             <button type="submit">Build Custom PC</button>
           </form>
         </div>
@@ -379,14 +989,384 @@
 
       <div class="response-area">
         <h2>Results</h2>
-        <div id="loading-indicator" class="loading hidden">Loading...</div>
-        <div id="error-message" class="error-message hidden"></div>
-        <pre id="results-display"></pre>
+        <div id="loading-indicator" class="loading"></div>
+        <div id="error-message" class="error-message"></div>
+        <div id="results-display"></div>
       </div>
     </section>
   </div>
 
-  <script src="script.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const welcomeSection = document.getElementById('welcome-section');
+      const appSection = document.getElementById('app-section');
+      const loginButton = document.getElementById('login-button');
+      const usernameInput = document.getElementById('username');
+      const displayUsername = document.getElementById('display-username');
+      const loginErrorMessage = document.getElementById('login-error');
+
+      const tabButtons = document.querySelectorAll('.tab-button');
+      const deviceForms = document.querySelectorAll('.device-form');
+
+      const loadingIndicator = document.getElementById('loading-indicator');
+      const errorMessageDisplay = document.getElementById('error-message');
+      const resultsDisplay = document.getElementById('results-display');
+
+      const RENDER_BACKEND_BASE_URL = "https://final-project-yv26.onrender.com";
+
+      // Login Logic
+      loginButton.addEventListener('click', () => {
+        const username = usernameInput.value.trim();
+        if (username) {
+          displayUsername.textContent = username;
+          welcomeSection.classList.remove('active');
+          welcomeSection.classList.add('hidden');
+          appSection.classList.remove('hidden');
+          loginErrorMessage.classList.remove('active');
+        } else {
+          loginErrorMessage.textContent = "Please enter your name to proceed.";
+          loginErrorMessage.classList.add('active');
+        }
+      });
+
+      // Tab Switching
+      tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          tabButtons.forEach(btn => btn.classList.remove('active'));
+          deviceForms.forEach(form => form.classList.remove('active'));
+
+          button.classList.add('active');
+          const tabId = button.dataset.tab;
+          document.getElementById(`${tabId}-tab`).classList.add('active');
+
+          resultsDisplay.innerHTML = '';
+          errorMessageDisplay.classList.remove('active');
+          loadingIndicator.classList.remove('active');
+        });
+      });
+
+      // Form Submissions
+      deviceForms.forEach(formDiv => {
+        const form = formDiv.querySelector('form');
+        if (form) {
+          form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            resultsDisplay.innerHTML = '';
+            errorMessageDisplay.classList.remove('active');
+            loadingIndicator.classList.add('active');
+
+            const requestBody = {};
+            let apiPath = '';
+
+            switch (form.id) {
+              case 'phone-form':
+                apiPath = '/find_phone';
+                requestBody.user_base_prompt = document.getElementById('phone_user_base_prompt').value;
+                requestBody.location = document.getElementById('phone_location').value;
+                addOptionalField(requestBody, 'phone_budget', 'number');
+                addOptionalField(requestBody, 'phone_brand');
+                addOptionalField(requestBody, 'phone_os_preference');
+                addOptionalField(requestBody, 'phone_colour');
+                addOptionalField(requestBody, 'phone_ram');
+                addOptionalField(requestBody, 'phone_storage');
+                addOptionalField(requestBody, 'phone_processor');
+                addOptionalField(requestBody, 'phone_battery');
+                addOptionalField(requestBody, 'phone_display');
+                addOptionalField(requestBody, 'phone_camera_priority');
+                addOptionalListField(requestBody, 'phone_preferred_brands');
+                break;
+              case 'laptop-form':
+                apiPath = '/find_laptop';
+                requestBody.user_base_prompt = document.getElementById('laptop_user_base_prompt').value;
+                requestBody.location = document.getElementById('laptop_location').value;
+                addOptionalField(requestBody, 'laptop_budget', 'number');
+                addOptionalField(requestBody, 'laptop_brand');
+                addOptionalField(requestBody, 'laptop_os_preference');
+                addOptionalField(requestBody, 'laptop_colour');
+                addOptionalField(requestBody, 'laptop_ram');
+                addOptionalField(requestBody, 'laptop_storage');
+                addOptionalField(requestBody, 'laptop_processor');
+                addOptionalField(requestBody, 'laptop_gpu');
+                addOptionalField(requestBody, 'laptop_display');
+                addOptionalField(requestBody, 'laptop_battery');
+                addOptionalField(requestBody, 'laptop_weight');
+                addOptionalField(requestBody, 'laptop_build');
+                addOptionalField(requestBody, 'laptop_usage');
+                addOptionalListField(requestBody, 'laptop_preferred_brands');
+                break;
+              case 'tablet-form':
+                apiPath = '/find_tablet';
+                requestBody.user_base_prompt = document.getElementById('tablet_user_base_prompt').value;
+                requestBody.location = document.getElementById('tablet_location').value;
+                addOptionalField(requestBody, 'tablet_budget', 'number');
+                addOptionalField(requestBody, 'tablet_brand');
+                addOptionalField(requestBody, 'tablet_os_preference');
+                addOptionalField(requestBody, 'tablet_colour');
+                addOptionalField(requestBody, 'tablet_ram');
+                addOptionalField(requestBody, 'tablet_storage');
+                addOptionalField(requestBody, 'tablet_processor');
+                addOptionalField(requestBody, 'tablet_display');
+                addOptionalField(requestBody, 'tablet_battery');
+                addOptionalField(requestBody, 'tablet_stylus_support', 'checkbox');
+                addOptionalField(requestBody, 'tablet_connectivity');
+                addOptionalField(requestBody, 'tablet_usage');
+                addOptionalField(requestBody, 'tablet_camera_priority');
+                addOptionalListField(requestBody, 'tablet_preferred_brands');
+                break;
+              case 'earpiece-form':
+                apiPath = '/find_earpiece';
+                requestBody.user_base_prompt = document.getElementById('earpiece_user_base_prompt').value;
+                requestBody.location = document.getElementById('earpiece_location').value;
+                addOptionalField(requestBody, 'earpiece_budget', 'number');
+                addOptionalField(requestBody, 'earpiece_brand');
+                addOptionalField(requestBody, 'earpiece_os_preference');
+                addOptionalField(requestBody, 'earpiece_colour');
+                addOptionalField(requestBody, 'earpiece_type');
+                addOptionalField(requestBody, 'earpiece_connectivity');
+                addOptionalField(requestBody, 'earpiece_battery_life');
+                addOptionalField(requestBody, 'earpiece_noise_cancellation');
+                addOptionalField(requestBody, 'earpiece_mic_quality');
+                addOptionalField(requestBody, 'earpiece_sound_profile');
+                addOptionalListField(requestBody, 'earpiece_preferred_brands');
+                break;
+              case 'prebuilt_pc-form':
+                apiPath = '/find_prebuilt_pc';
+                requestBody.user_base_prompt = document.getElementById('prebuilt_pc_user_base_prompt').value;
+                requestBody.location = document.getElementById('prebuilt_pc_location').value;
+                addOptionalField(requestBody, 'prebuilt_pc_budget', 'number');
+                addOptionalField(requestBody, 'prebuilt_pc_brand');
+                addOptionalField(requestBody, 'prebuilt_pc_os_preference');
+                addOptionalField(requestBody, 'prebuilt_pc_colour');
+                addOptionalField(requestBody, 'prebuilt_pc_usage');
+                addOptionalField(requestBody, 'prebuilt_pc_cpu_preference');
+                addOptionalField(requestBody, 'prebuilt_pc_gpu_requirement');
+                addOptionalField(requestBody, 'prebuilt_pc_ram_capacity');
+                addOptionalField(requestBody, 'prebuilt_pc_storage_size');
+                addOptionalField(requestBody, 'prebuilt_pc_monitor_included', 'checkbox');
+                addOptionalListField(requestBody, 'prebuilt_pc_preferred_brands');
+                break;
+              case 'pc_builder-form':
+                apiPath = '/build_custom_pc';
+                requestBody.user_base_prompt = document.getElementById('pc_builder_user_base_prompt').value;
+                requestBody.location = document.getElementById('pc_builder_location').value;
+                addOptionalField(requestBody, 'pc_builder_budget', 'number');
+                addOptionalField(requestBody, 'pc_builder_brand');
+                addOptionalField(requestBody, 'pc_builder_os_preference');
+                addOptionalField(requestBody, 'pc_builder_colour');
+                addOptionalField(requestBody, 'pc_builder_use_case');
+                addOptionalField(requestBody, 'pc_builder_cpu_preference');
+                addOptionalField(requestBody, 'pc_builder_gpu_preference');
+                addOptionalField(requestBody, 'pc_builder_ram_capacity');
+                addOptionalField(requestBody, 'pc_builder_ram_type');
+                addOptionalField(requestBody, 'pc_builder_storage_preference');
+                addOptionalField(requestBody, 'pc_builder_ssd_size_preference');
+                addOptionalField(requestBody, 'pc_builder_power_supply_preference');
+                addOptionalField(requestBody, 'pc_builder_form_factor');
+                addOptionalField(requestBody, 'pc_builder_cooling_type');
+                addOptionalField(requestBody, 'pc_builder_monitor_refresh_rate');
+                addOptionalField(requestBody, 'pc_builder_monitor_quality');
+                addOptionalField(requestBody, 'pc_builder_aesthetic_preference');
+                addOptionalField(requestBody, 'pc_builder_peripherals_included', 'checkbox');
+                addOptionalListField(requestBody, 'pc_builder_preferred_brands');
+                break;
+              default:
+                displayError("Unknown form type");
+                loadingIndicator.classList.remove('active');
+                return;
+            }
+
+            if (!RENDER_BACKEND_BASE_URL || RENDER_BACKEND_BASE_URL === "YOUR_RENDER_BACKEND_URL_HERE") {
+              displayError("Backend URL not configured");
+              loadingIndicator.classList.remove('active');
+              return;
+            }
+
+            try {
+              const fullUrl = `${RENDER_BACKEND_BASE_URL}${apiPath}`;
+              const response = await fetch(fullUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestBody),
+              });
+
+              if (!response.ok) {
+                const errorData = await response.json();
+                displayError(errorData.detail || `Error: ${response.status}`);
+                return;
+              }
+
+              const data = await response.json();
+              displayResults(data);
+            } catch (error) {
+              displayError('Network error or server is unreachable');
+            } finally {
+              loadingIndicator.classList.remove('active');
+            }
+          });
+        }
+      });
+
+      function addOptionalField(obj, elementId, type = 'text') {
+        const element = document.getElementById(elementId);
+        if (element) {
+          let value;
+          if (type === 'checkbox') {
+            value = element.checked;
+            if (value) {
+              obj[elementId.split('_').slice(1).join('_')] = value;
+            }
+          } else {
+            value = element.value.trim();
+            if (value !== '') {
+              if (type === 'number') {
+                obj[elementId.split('_').slice(1).join('_')] = parseFloat(value);
+              } else {
+                obj[elementId.split('_').slice(1).join('_')] = value;
+              }
+            }
+          }
+        }
+      }
+
+      function addOptionalListField(obj, elementId) {
+        const element = document.getElementById(elementId);
+        if (element) {
+          const value = element.value.trim();
+          if (value !== '') {
+            obj[elementId.split('_').slice(1).join('_')] = value.split(',').map(item => item.trim()).filter(item => item !== '');
+          }
+        }
+      }
+
+      function displayError(message) {
+        errorMessageDisplay.textContent = message;
+        errorMessageDisplay.classList.add('active');
+      }
+
+      function displayResults(data) {
+        resultsDisplay.innerHTML = '';
+
+        // Handle different response structures
+        if (data.recommendations && Array.isArray(data.recommendations)) {
+          // Multiple recommendations
+          data.recommendations.forEach((rec, index) => {
+            const card = createResultCard(rec, index);
+            resultsDisplay.appendChild(card);
+          });
+        } else if (data.recommendation) {
+          // Single recommendation
+          const card = createResultCard(data.recommendation, 0);
+          resultsDisplay.appendChild(card);
+        } else {
+          // Fallback to raw JSON
+          const pre = document.createElement('pre');
+          pre.style.padding = '20px';
+          pre.style.background = '#f7fafc';
+          pre.style.borderRadius = '8px';
+          pre.style.overflow = 'auto';
+          pre.textContent = JSON.stringify(data, null, 2);
+          resultsDisplay.appendChild(pre);
+        }
+
+        // Add AI note if present
+        if (data.ai_note || data.note) {
+          const note = document.createElement('div');
+          note.className = 'ai-note';
+          note.innerHTML = `<strong>AI Assistant Note:</strong> ${data.ai_note || data.note}`;
+          resultsDisplay.appendChild(note);
+        }
+      }
+
+      function createResultCard(rec, index) {
+        const card = document.createElement('div');
+        card.className = 'result-card';
+
+        // Header with title and price
+        const header = document.createElement('div');
+        header.className = 'result-header';
+
+        const title = document.createElement('div');
+        title.className = 'result-title';
+        title.textContent = rec.name || rec.title || `Recommendation ${index + 1}`;
+
+        const price = document.createElement('div');
+        price.className = 'result-price';
+        price.textContent = rec.price || rec.estimated_price || 'Price not available';
+
+        header.appendChild(title);
+        header.appendChild(price);
+        card.appendChild(header);
+
+        // Description
+        if (rec.description || rec.summary) {
+          const desc = document.createElement('div');
+          desc.className = 'result-description';
+          desc.textContent = rec.description || rec.summary;
+          card.appendChild(desc);
+        }
+
+        // Specs
+        const specsData = rec.specs || rec.specifications || rec.details || {};
+        if (Object.keys(specsData).length > 0) {
+          const specsContainer = document.createElement('div');
+          specsContainer.className = 'result-specs';
+
+          Object.entries(specsData).forEach(([key, value]) => {
+            if (value !== null && value !== undefined && value !== '') {
+              const specItem = document.createElement('div');
+              specItem.className = 'spec-item';
+              specItem.innerHTML = `
+                <span class="spec-label">${formatLabel(key)}</span>
+                <span class="spec-value">${value}</span>
+              `;
+              specsContainer.appendChild(specItem);
+            }
+          });
+
+          card.appendChild(specsContainer);
+        }
+
+        // Links
+        const links = rec.links || rec.purchase_links || [];
+        if (links.length > 0) {
+          const linksContainer = document.createElement('div');
+          linksContainer.className = 'result-links';
+
+          links.forEach(link => {
+            const anchor = document.createElement('a');
+            anchor.className = 'result-link';
+            anchor.href = link.url || link;
+            anchor.target = '_blank';
+            anchor.rel = 'noopener noreferrer';
+            anchor.textContent = link.name || link.store || 'View Product';
+            linksContainer.appendChild(anchor);
+          });
+
+          card.appendChild(linksContainer);
+        } else if (rec.url || rec.link) {
+          const linksContainer = document.createElement('div');
+          linksContainer.className = 'result-links';
+          const anchor = document.createElement('a');
+          anchor.className = 'result-link';
+          anchor.href = rec.url || rec.link;
+          anchor.target = '_blank';
+          anchor.rel = 'noopener noreferrer';
+          anchor.textContent = 'View Product';
+          linksContainer.appendChild(anchor);
+          card.appendChild(linksContainer);
+        }
+
+        return card;
+      }
+
+      function formatLabel(str) {
+        return str
+          .replace(/_/g, ' ')
+          .replace(/\b\w/g, l => l.toUpperCase());
+      }
+    });
+  </script>
 </body>
 
 </html>
