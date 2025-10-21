@@ -411,19 +411,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 try {
-                    const fullUrl = `${RENDER_BACKEND_BASE_URL}${apiPath}`;
                     const response = await fetch(fullUrl, {
                         method: 'POST',
-                        headers: getAuthHeaders(), // ← CHANGED: Now includes JWT token
+                        headers: getAuthHeaders(),
                         body: JSON.stringify(requestBody),
                     });
 
-                    // NEW: Handle authentication errors
+                    // Handle rate limiting
+                    if (response.status === 429) {
+                        const errorData = await response.json();
+                        const retryAfter = response.headers.get('Retry-After') || 'unknown';
+                        displayError(
+                            `Rate limit exceeded! ${errorData.detail}\n` +
+                            `Please wait ${retryAfter} seconds before trying again.`
+                        );
+                        return;
+                    }
+
                     if (response.status === 401) {
                         displayError('Session expired. Please login again.');
-                        setTimeout(() => {
-                            logout();
-                        }, 2000);
+                        setTimeout(() => logout(), 2000);
                         return;
                     }
 
