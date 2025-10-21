@@ -249,8 +249,34 @@ document.addEventListener('DOMContentLoaded', () => {
         resultsDisplay.innerHTML = '';
 
         // Handle error responses
-        if (data.error) {
-            displayError(data.error);
+        if (data.error || data.status === 'failed') {
+            const errorBox = document.createElement('div');
+            errorBox.className = 'error-box';
+            errorBox.style.padding = '20px';
+            errorBox.style.background = '#fee';
+            errorBox.style.border = '2px solid #c00';
+            errorBox.style.borderRadius = '8px';
+            errorBox.style.marginBottom = '20px';
+            errorBox.innerHTML = `
+                <h3 style="color: #c00; margin-top: 0;">⚠️ Error</h3>
+                <p><strong>Message:</strong> ${data.error || 'Request failed'}</p>
+                ${data.status ? `<p><strong>Status:</strong> ${data.status}</p>` : ''}
+            `;
+            resultsDisplay.appendChild(errorBox);
+
+            // Still try to show partial data if available
+            if (data.partial_data) {
+                const pre = document.createElement('pre');
+                pre.style.padding = '15px';
+                pre.style.background = '#f7fafc';
+                pre.style.borderRadius = '8px';
+                pre.style.overflow = 'auto';
+                pre.style.maxHeight = '300px';
+                pre.textContent = typeof data.partial_data === 'string'
+                    ? data.partial_data
+                    : JSON.stringify(data.partial_data, null, 2);
+                resultsDisplay.appendChild(pre);
+            }
             return;
         }
 
