@@ -13,77 +13,62 @@ document.addEventListener('DOMContentLoaded', () => {
     const errorMessageDisplay = document.getElementById('error-message');
     const resultsDisplay = document.getElementById('results-display');
 
-    // --- Render Backend Base URL ---
-    // IMPORTANT: Replace "YOUR_RENDER_BACKEND_URL_HERE" with the actual URL
-    // of your deployed Render backend (e.g., "https://my-device-finder-api.onrender.com")
     const RENDER_BACKEND_BASE_URL = "https://final-project-yv26.onrender.com";
 
-    // --- Placeholder Login Logic ---
+    // Login Logic
     loginButton.addEventListener('click', () => {
         const username = usernameInput.value.trim();
         if (username) {
             displayUsername.textContent = username;
+            welcomeSection.classList.remove('active');
             welcomeSection.classList.add('hidden');
             appSection.classList.remove('hidden');
-            loginErrorMessage.classList.add('hidden');
-            // Automatically select the first tab
-            if (tabButtons.length > 0) {
-                tabButtons[0].click();
-            }
+            loginErrorMessage.classList.remove('active');
         } else {
             loginErrorMessage.textContent = "Please enter your name to proceed.";
-            loginErrorMessage.classList.remove('hidden');
+            loginErrorMessage.classList.add('active');
         }
     });
 
-    // --- Tab Switching Logic ---
+    // Tab Switching
     tabButtons.forEach(button => {
         button.addEventListener('click', () => {
-            // Remove active class from all buttons and hide all forms
             tabButtons.forEach(btn => btn.classList.remove('active'));
-            deviceForms.forEach(form => form.classList.add('hidden'));
+            deviceForms.forEach(form => form.classList.remove('active'));
 
-            // Add active class to the clicked button
             button.classList.add('active');
-
-            // Show the corresponding device form
             const tabId = button.dataset.tab;
-            document.getElementById(`${tabId}-tab`).classList.remove('hidden');
+            document.getElementById(`${tabId}-tab`).classList.add('active');
 
-            // Clear previous results and errors when switching tabs
-            resultsDisplay.textContent = '';
-            errorMessageDisplay.classList.add('hidden');
-            loadingIndicator.classList.add('hidden');
+            resultsDisplay.innerHTML = '';
+            errorMessageDisplay.classList.remove('active');
+            loadingIndicator.classList.remove('active');
         });
     });
 
-    // --- Form Submission Logic ---
+    // Form Submissions
     deviceForms.forEach(formDiv => {
         const form = formDiv.querySelector('form');
         if (form) {
             form.addEventListener('submit', async (event) => {
-                event.preventDefault(); // Prevent default form submission
+                event.preventDefault();
 
-                // Clear previous messages
-                resultsDisplay.textContent = '';
-                errorMessageDisplay.classList.add('hidden');
-                loadingIndicator.classList.remove('hidden'); // Show loading
+                resultsDisplay.innerHTML = '';
+                errorMessageDisplay.classList.remove('active');
+                loadingIndicator.classList.add('active');
 
                 const requestBody = {};
-                let apiPath = ''; // This will store the specific API path like '/find_phone'
+                let apiPath = '';
 
-                // Determine API path and construct requestBody based on form ID
                 switch (form.id) {
                     case 'phone-form':
                         apiPath = '/find_phone';
                         requestBody.user_base_prompt = document.getElementById('phone_user_base_prompt').value;
                         requestBody.location = document.getElementById('phone_location').value;
-                        // Common optional fields
                         addOptionalField(requestBody, 'phone_budget', 'number');
                         addOptionalField(requestBody, 'phone_brand');
                         addOptionalField(requestBody, 'phone_os_preference');
                         addOptionalField(requestBody, 'phone_colour');
-                        // Specific fields
                         addOptionalField(requestBody, 'phone_ram');
                         addOptionalField(requestBody, 'phone_storage');
                         addOptionalField(requestBody, 'phone_processor');
@@ -187,62 +172,48 @@ document.addEventListener('DOMContentLoaded', () => {
                         addOptionalListField(requestBody, 'pc_builder_preferred_brands');
                         break;
                     default:
-                        console.error("Unknown form ID:", form.id);
-                        displayError("An internal error occurred. Please try again.");
-                        loadingIndicator.classList.add('hidden');
+                        displayError("Unknown form type");
+                        loadingIndicator.classList.remove('active');
                         return;
                 }
 
-                // Check if the backend URL is set
-                if (RENDER_BACKEND_BASE_URL === "YOUR_RENDER_BACKEND_URL_HERE" || !RENDER_BACKEND_BASE_URL) {
-                    displayError("Backend URL is not configured in script.js. Please update RENDER_BACKEND_BASE_URL.");
-                    loadingIndicator.classList.add('hidden');
-                    console.error("RENDER_BACKEND_BASE_URL is not set!");
+                if (!RENDER_BACKEND_BASE_URL || RENDER_BACKEND_BASE_URL === "YOUR_RENDER_BACKEND_URL_HERE") {
+                    displayError("Backend URL not configured");
+                    loadingIndicator.classList.remove('active');
                     return;
                 }
 
                 try {
-                    // Construct the full URL using the base URL and the specific API path
                     const fullUrl = `${RENDER_BACKEND_BASE_URL}${apiPath}`;
-                    console.log("Sending request to:", fullUrl); // Debugging: check the URL in console
-
                     const response = await fetch(fullUrl, {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(requestBody),
                     });
 
                     if (!response.ok) {
                         const errorData = await response.json();
-                        console.error('API Error:', errorData);
-                        displayError(errorData.detail || `Error: ${response.status} ${response.statusText}`);
+                        displayError(errorData.detail || `Error: ${response.status}`);
                         return;
                     }
 
                     const data = await response.json();
-                    resultsDisplay.textContent = JSON.stringify(data, null, 2); // Pretty print JSON
+                    displayResults(data);
                 } catch (error) {
-                    console.error('Fetch Error:', error);
-                    displayError('Network error or server is unreachable. Please check your connection or try again later.');
+                    displayError('Network error or server is unreachable');
                 } finally {
-                    loadingIndicator.classList.add('hidden'); // Hide loading regardless of outcome
+                    loadingIndicator.classList.remove('active');
                 }
             });
         }
     });
 
-    // Helper function to add optional fields to requestBody
     function addOptionalField(obj, elementId, type = 'text') {
         const element = document.getElementById(elementId);
         if (element) {
             let value;
             if (type === 'checkbox') {
                 value = element.checked;
-                // Only include if true, or if you want to explicitly send false
-                // Note: pydantic models with Optional[bool] handle None correctly.
-                // We send it if checked, otherwise it's implicitly not included (None).
                 if (value) {
                     obj[elementId.split('_').slice(1).join('_')] = value;
                 }
@@ -259,21 +230,140 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Helper function for list fields (e.g., preferred_brands)
     function addOptionalListField(obj, elementId) {
         const element = document.getElementById(elementId);
         if (element) {
             const value = element.value.trim();
             if (value !== '') {
-                // Split by comma, trim each item, and filter out any empty strings
                 obj[elementId.split('_').slice(1).join('_')] = value.split(',').map(item => item.trim()).filter(item => item !== '');
             }
         }
     }
 
-    // Helper function to display errors on UI
     function displayError(message) {
         errorMessageDisplay.textContent = message;
-        errorMessageDisplay.classList.remove('hidden');
+        errorMessageDisplay.classList.add('active');
+    }
+
+    function displayResults(data) {
+        resultsDisplay.innerHTML = '';
+
+        // Handle different response structures
+        if (data.recommendations && Array.isArray(data.recommendations)) {
+            // Multiple recommendations
+            data.recommendations.forEach((rec, index) => {
+                const card = createResultCard(rec, index);
+                resultsDisplay.appendChild(card);
+            });
+        } else if (data.recommendation) {
+            // Single recommendation
+            const card = createResultCard(data.recommendation, 0);
+            resultsDisplay.appendChild(card);
+        } else {
+            // Fallback to raw JSON
+            const pre = document.createElement('pre');
+            pre.style.padding = '20px';
+            pre.style.background = '#f7fafc';
+            pre.style.borderRadius = '8px';
+            pre.style.overflow = 'auto';
+            pre.textContent = JSON.stringify(data, null, 2);
+            resultsDisplay.appendChild(pre);
+        }
+
+        // Add AI note if present
+        if (data.ai_note || data.note) {
+            const note = document.createElement('div');
+            note.className = 'ai-note';
+            note.innerHTML = `<strong>AI Assistant Note:</strong> ${data.ai_note || data.note}`;
+            resultsDisplay.appendChild(note);
+        }
+    }
+
+    function createResultCard(rec, index) {
+        const card = document.createElement('div');
+        card.className = 'result-card';
+
+        // Header with title and price
+        const header = document.createElement('div');
+        header.className = 'result-header';
+
+        const title = document.createElement('div');
+        title.className = 'result-title';
+        title.textContent = rec.name || rec.title || `Recommendation ${index + 1}`;
+
+        const price = document.createElement('div');
+        price.className = 'result-price';
+        price.textContent = rec.price || rec.estimated_price || 'Price not available';
+
+        header.appendChild(title);
+        header.appendChild(price);
+        card.appendChild(header);
+
+        // Description
+        if (rec.description || rec.summary) {
+            const desc = document.createElement('div');
+            desc.className = 'result-description';
+            desc.textContent = rec.description || rec.summary;
+            card.appendChild(desc);
+        }
+
+        // Specs
+        const specsData = rec.specs || rec.specifications || rec.details || {};
+        if (Object.keys(specsData).length > 0) {
+            const specsContainer = document.createElement('div');
+            specsContainer.className = 'result-specs';
+
+            Object.entries(specsData).forEach(([key, value]) => {
+                if (value !== null && value !== undefined && value !== '') {
+                    const specItem = document.createElement('div');
+                    specItem.className = 'spec-item';
+                    specItem.innerHTML = `
+                <span class="spec-label">${formatLabel(key)}</span>
+                <span class="spec-value">${value}</span>
+              `;
+                    specsContainer.appendChild(specItem);
+                }
+            });
+
+            card.appendChild(specsContainer);
+        }
+
+        // Links
+        const links = rec.links || rec.purchase_links || [];
+        if (links.length > 0) {
+            const linksContainer = document.createElement('div');
+            linksContainer.className = 'result-links';
+
+            links.forEach(link => {
+                const anchor = document.createElement('a');
+                anchor.className = 'result-link';
+                anchor.href = link.url || link;
+                anchor.target = '_blank';
+                anchor.rel = 'noopener noreferrer';
+                anchor.textContent = link.name || link.store || 'View Product';
+                linksContainer.appendChild(anchor);
+            });
+
+            card.appendChild(linksContainer);
+        } else if (rec.url || rec.link) {
+            const linksContainer = document.createElement('div');
+            linksContainer.className = 'result-links';
+            const anchor = document.createElement('a');
+            anchor.className = 'result-link';
+            anchor.href = rec.url || rec.link;
+            anchor.target = '_blank';
+            anchor.rel = 'noopener noreferrer';
+            anchor.textContent = 'View Product';
+            linksContainer.appendChild(anchor);
+            card.appendChild(linksContainer);
+        }
+
+        return card;
+    }
+
+    function formatLabel(str) {
+        return str
+            .replace(/_/g, ' ')
+            .replace(/\b\w/g, l => l.toUpperCase());
     }
 });
