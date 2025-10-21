@@ -11,15 +11,44 @@
 <body>
   <div class="container">
     <!-- Welcome Section -->
+    <!-- Replace your existing welcome-section with this -->
     <section id="welcome-section" class="active">
-      <div class="welcome-content">
-        <h1>DeviceFinder.AI</h1>
-        <p>Your AI-powered assistant for finding the perfect electronic device.</p>
-        <div class="login-form">
-          <input type="text" id="username" placeholder="Enter your name" required>
-          <button id="login-button">Enter Application</button>
+      <div class="login-container">
+        <h1>Welcome to DeviceFinder.AI</h1>
+        <p>Your AI-powered device recommendation assistant</p>
+
+        <!-- Toggle between Login and Register -->
+        <div class="auth-toggle">
+          <button id="show-login-btn" class="toggle-btn active">Login</button>
+          <button id="show-register-btn" class="toggle-btn">Register</button>
         </div>
-        <p id="login-error" class="error-message"></p>
+
+        <!-- Login Form -->
+        <div id="login-form-container" class="auth-form-container active">
+          <h2>Login</h2>
+          <form id="login-form">
+            <input type="text" id="login-username" placeholder="Username" required autocomplete="username" />
+            <input type="password" id="login-password" placeholder="Password" required
+              autocomplete="current-password" />
+            <button type="submit" id="login-button">Login</button>
+          </form>
+          <p id="login-error" class="error-message"></p>
+        </div>
+
+        <!-- Register Form -->
+        <div id="register-form-container" class="auth-form-container">
+          <h2>Create Account</h2>
+          <form id="register-form">
+            <input type="text" id="register-username" placeholder="Username (3-50 characters)" required minlength="3"
+              maxlength="50" autocomplete="username" />
+            <input type="email" id="register-email" placeholder="Email" required autocomplete="email" />
+            <input type="password" id="register-password" placeholder="Password (min 8 characters)" required
+              minlength="8" autocomplete="new-password" />
+            <button type="submit" id="register-button">Register</button>
+          </form>
+          <p id="register-error" class="error-message"></p>
+          <p id="register-success" class="success-message"></p>
+        </div>
       </div>
     </section>
 

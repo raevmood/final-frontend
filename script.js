@@ -1,10 +1,27 @@
 document.addEventListener('DOMContentLoaded', () => {
     const welcomeSection = document.getElementById('welcome-section');
     const appSection = document.getElementById('app-section');
-    const loginButton = document.getElementById('login-button');
-    const usernameInput = document.getElementById('username');
     const displayUsername = document.getElementById('display-username');
+
+    // NEW: Auth toggle elements
+    const showLoginBtn = document.getElementById('show-login-btn');
+    const showRegisterBtn = document.getElementById('show-register-btn');
+    const loginFormContainer = document.getElementById('login-form-container');
+    const registerFormContainer = document.getElementById('register-form-container');
+
+    // NEW: Login elements
+    const loginForm = document.getElementById('login-form');
+    const loginUsername = document.getElementById('login-username');
+    const loginPassword = document.getElementById('login-password');
     const loginErrorMessage = document.getElementById('login-error');
+
+    // NEW: Register elements
+    const registerForm = document.getElementById('register-form');
+    const registerUsername = document.getElementById('register-username');
+    const registerEmail = document.getElementById('register-email');
+    const registerPassword = document.getElementById('register-password');
+    const registerErrorMessage = document.getElementById('register-error');
+    const registerSuccessMessage = document.getElementById('register-success');
 
     const tabButtons = document.querySelectorAll('.tab-button');
     const deviceForms = document.querySelectorAll('.device-form');
@@ -21,23 +38,224 @@ document.addEventListener('DOMContentLoaded', () => {
     let lastFetchedRecommendations = null; // To store the last recommendations
 
     const RENDER_BACKEND_BASE_URL = "https://final-project-yv26.onrender.com";
+    const INGESTION_API_KEY = "cOeuEIPdT2kAc5JoRGo22kGZ3LBip7MUr03Q"; // Your access pass key
 
-    // Login Logic
-    loginButton.addEventListener('click', () => {
-        const username = usernameInput.value.trim();
-        if (username) {
+    // ============================================================
+    // NEW: AUTH TOGGLE - Switch between Login and Register
+    // ============================================================
+    showLoginBtn.addEventListener('click', () => {
+        showLoginBtn.classList.add('active');
+        showRegisterBtn.classList.remove('active');
+        loginFormContainer.classList.add('active');
+        registerFormContainer.classList.remove('active');
+        clearMessages();
+    });
+
+    showRegisterBtn.addEventListener('click', () => {
+        showRegisterBtn.classList.add('active');
+        showLoginBtn.classList.remove('active');
+        registerFormContainer.classList.add('active');
+        loginFormContainer.classList.remove('active');
+        clearMessages();
+    });
+
+    function clearMessages() {
+        loginErrorMessage.classList.remove('active');
+        registerErrorMessage.classList.remove('active');
+        registerSuccessMessage.classList.remove('active');
+    }
+
+    // ============================================================
+    // NEW: CHECK IF ALREADY LOGGED IN
+    // ============================================================
+    function checkExistingAuth() {
+        const token = localStorage.getItem('access_token');
+        const username = localStorage.getItem('username');
+
+        if (token && username) {
+            // Verify token is still valid
+            fetch(`${RENDER_BACKEND_BASE_URL}/auth/me`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+                .then(response => {
+                    if (response.ok) {
+                        // Token is valid, go to app
+                        displayUsername.textContent = username;
+                        welcomeSection.classList.remove('active');
+                        welcomeSection.classList.add('hidden');
+                        appSection.classList.remove('hidden');
+                    } else {
+                        // Token expired, clear storage
+                        localStorage.removeItem('access_token');
+                        localStorage.removeItem('username');
+                    }
+                })
+                .catch(err => {
+                    console.error('Auth check failed:', err);
+                    localStorage.removeItem('access_token');
+                    localStorage.removeItem('username');
+                });
+        }
+    }
+
+    // Check on page load
+    checkExistingAuth();
+
+    // ============================================================
+    // NEW: REGISTRATION LOGIC
+    // ============================================================
+    registerForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        clearMessages();
+
+        const username = registerUsername.value.trim();
+        const email = registerEmail.value.trim();
+        const password = registerPassword.value;
+
+        // Basic validation
+        if (username.length < 3) {
+            registerErrorMessage.textContent = "Username must be at least 3 characters";
+            registerErrorMessage.classList.add('active');
+            return;
+        }
+
+        if (password.length < 8) {
+            registerErrorMessage.textContent = "Password must be at least 8 characters";
+            registerErrorMessage.classList.add('active');
+            return;
+        }
+
+        try {
+            const response = await fetch(`${RENDER_BACKEND_BASE_URL}/auth/register`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    username: username,
+                    email: email,
+                    password: password
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || 'Registration failed');
+            }
+
+            const data = await response.json();
+
+            // Show success message
+            registerSuccessMessage.textContent = `Account created successfully! Welcome, ${data.username}. Please login.`;
+            registerSuccessMessage.classList.add('active');
+
+            // Clear form
+            registerForm.reset();
+
+            // Auto-switch to login after 2 seconds
+            setTimeout(() => {
+                showLoginBtn.click();
+                loginUsername.value = username; // Pre-fill username
+            }, 2000);
+
+        } catch (error) {
+            registerErrorMessage.textContent = error.message;
+            registerErrorMessage.classList.add('active');
+        }
+    });
+
+    // ============================================================
+    // NEW: LOGIN LOGIC
+    // ============================================================
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        clearMessages();
+
+        const username = loginUsername.value.trim();
+        const password = loginPassword.value;
+
+        if (!username || !password) {
+            loginErrorMessage.textContent = "Please enter both username and password";
+            loginErrorMessage.classList.add('active');
+            return;
+        }
+
+        try {
+            const response = await fetch(`${RENDER_BACKEND_BASE_URL}/auth/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    username: username,
+                    password: password
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || 'Login failed');
+            }
+
+            const data = await response.json();
+
+            // Store token and username
+            localStorage.setItem('access_token', data.access_token);
+            localStorage.setItem('username', username);
+            localStorage.setItem('token_expiry', Date.now() + (data.expires_in * 1000));
+
+            // Update UI
             displayUsername.textContent = username;
             welcomeSection.classList.remove('active');
             welcomeSection.classList.add('hidden');
             appSection.classList.remove('hidden');
-            loginErrorMessage.classList.remove('active');
-        } else {
-            loginErrorMessage.textContent = "Please enter your name to proceed.";
+
+            // Clear form
+            loginForm.reset();
+
+        } catch (error) {
+            loginErrorMessage.textContent = error.message;
             loginErrorMessage.classList.add('active');
         }
     });
 
+    // ============================================================
+    // NEW: LOGOUT FUNCTIONALITY
+    // ============================================================
+    window.logout = function () {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('username');
+        localStorage.removeItem('token_expiry');
+
+        appSection.classList.add('hidden');
+        welcomeSection.classList.remove('hidden');
+        welcomeSection.classList.add('active');
+
+        // Clear any displayed results
+        resultsDisplay.innerHTML = '';
+        errorMessageDisplay.classList.remove('active');
+        emailRecommendationsSection.classList.add('hidden');
+    };
+
+    // ============================================================
+    // NEW: HELPER - Get Auth Headers
+    // ============================================================
+    function getAuthHeaders() {
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            throw new Error('Not authenticated');
+        }
+        return {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        };
+    }
+
+    // ============================================================
     // Tab Switching
+    // ============================================================
     tabButtons.forEach(button => {
         button.addEventListener('click', () => {
             tabButtons.forEach(btn => btn.classList.remove('active'));
@@ -53,7 +271,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Form Submissions
+    // ============================================================
+    // UPDATED: Form Submissions with JWT Authentication
+    // ============================================================
     deviceForms.forEach(formDiv => {
         const form = formDiv.querySelector('form');
         if (form) {
@@ -194,9 +414,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     const fullUrl = `${RENDER_BACKEND_BASE_URL}${apiPath}`;
                     const response = await fetch(fullUrl, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: getAuthHeaders(), // ← CHANGED: Now includes JWT token
                         body: JSON.stringify(requestBody),
                     });
+
+                    // NEW: Handle authentication errors
+                    if (response.status === 401) {
+                        displayError('Session expired. Please login again.');
+                        setTimeout(() => {
+                            logout();
+                        }, 2000);
+                        return;
+                    }
 
                     if (!response.ok) {
                         const errorData = await response.json();
@@ -208,6 +437,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     displayResults(data);
                 } catch (error) {
                     displayError('Network error or server is unreachable');
+                    console.error('Request error:', error);
                 } finally {
                     loadingIndicator.classList.remove('active');
                 }
@@ -215,6 +445,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // ============================================================
+    // Helper Functions
+    // ============================================================
     function addOptionalField(obj, elementId, type = 'text') {
         const element = document.getElementById(elementId);
         if (element) {
@@ -258,6 +491,7 @@ document.addEventListener('DOMContentLoaded', () => {
         emailRecommendationsSection.classList.remove('hidden'); // Show email section
         emailSendConfirmation.classList.remove('active'); // Clear previous messages
         emailSendError.classList.remove('active'); // Clear previous messages
+
         // Handle error responses
         if (data.error || data.status === 'failed') {
             const errorBox = document.createElement('div');
@@ -541,9 +775,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     const specItem = document.createElement('div');
                     specItem.className = 'spec-item';
                     specItem.innerHTML = `
-                <span class="spec-label">${formatLabel(key)}</span>
-                <span class="spec-value">${value}</span>
-              `;
+                        <span class="spec-label">${formatLabel(key)}</span>
+                        <span class="spec-value">${value}</span>
+                    `;
                     specsContainer.appendChild(specItem);
                 }
             });
@@ -589,7 +823,10 @@ document.addEventListener('DOMContentLoaded', () => {
             .replace(/_/g, ' ')
             .replace(/\b\w/g, l => l.toUpperCase());
     }
+
+    // ============================================================
     // Email Recommendations Logic
+    // ============================================================
     sendEmailButton.addEventListener('click', async () => {
         const customerEmail = customerEmailInput.value.trim();
 
@@ -602,7 +839,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Simple email format validation (more robust regex can be used)
+        // Simple email format validation
         if (!/\S+@\S+\.\S+/.test(customerEmail)) {
             emailSendError.textContent = "Please enter a valid email address.";
             emailSendError.classList.add('active');
@@ -618,13 +855,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // Prepare the payload to send to n8n webhook
         const emailPayload = {
             recipientEmail: customerEmail,
-            recommendations: lastFetchedRecommendations // Send the full JSON object
+            recommendations: lastFetchedRecommendations
         };
 
         const n8nWebhookUrl = "https://karanja-kariuki-2.app.n8n.cloud/webhook-test/fc9a2009-3066-45c6-b236-5d5dd8fd12bd";
 
         try {
-            // Visually indicate sending process if desired (e.g., disable button, show spinner)
+            // Visually indicate sending process
             sendEmailButton.disabled = true;
             sendEmailButton.textContent = 'Sending...';
 

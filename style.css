@@ -98,6 +98,154 @@ body {
   box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
 }
 
+/* Add these styles to your existing styles.css */
+
+/* Auth Toggle Buttons */
+.auth-toggle {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  justify-content: center;
+}
+
+.toggle-btn {
+  padding: 10px 30px;
+  border: 2px solid #3b82f6;
+  background: white;
+  color: #3b82f6;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.toggle-btn:hover {
+  background: #eff6ff;
+}
+
+.toggle-btn.active {
+  background: #3b82f6;
+  color: white;
+}
+
+/* Auth Form Containers */
+.auth-form-container {
+  display: none;
+  animation: fadeIn 0.3s ease;
+}
+
+.auth-form-container.active {
+  display: block;
+}
+
+.auth-form-container h2 {
+  color: #1e40af;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.auth-form-container form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.auth-form-container input {
+  padding: 12px 15px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 1em;
+  transition: border-color 0.3s ease;
+}
+
+.auth-form-container input:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.auth-form-container button[type="submit"] {
+  padding: 12px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.auth-form-container button[type="submit"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
+}
+
+.auth-form-container button[type="submit"]:active {
+  transform: translateY(0);
+}
+
+/* Success Message */
+.success-message {
+  color: #059669;
+  background: #d1fae5;
+  padding: 10px;
+  border-radius: 6px;
+  margin-top: 10px;
+  text-align: center;
+  display: none;
+}
+
+.success-message.active {
+  display: block;
+  animation: fadeIn 0.3s ease;
+}
+
+/* Error Message Updates */
+.error-message {
+  color: #dc2626;
+  background: #fee2e2;
+  padding: 10px;
+  border-radius: 6px;
+  margin-top: 10px;
+  text-align: center;
+  display: none;
+}
+
+.error-message.active {
+  display: block;
+  animation: shake 0.5s ease;
+}
+
+/* Shake animation for errors */
+@keyframes shake {
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-10px);
+  }
+
+  75% {
+    transform: translateX(10px);
+  }
+}
+
+/* Fade in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Main App Section */
 #app-section {
   background: white;
