@@ -409,7 +409,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     loadingIndicator.classList.remove('active');
                     return;
                 }
-
+                const fullUrl = `${RENDER_BACKEND_BASE_URL}${apiPath}`;
                 try {
                     const response = await fetch(fullUrl, {
                         method: 'POST',
@@ -1096,7 +1096,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Handle send button click
         chatbotSendBtn.addEventListener('click', () => {
             const message = chatbotInput.value.trim();
             if (message) {
@@ -1104,7 +1103,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Handle Enter key (Shift+Enter for new line)
         chatbotInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -1114,23 +1112,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         });
-
-        // Auto-resize textarea
         function adjustTextareaHeight() {
             chatbotInput.style.height = 'auto';
             chatbotInput.style.height = Math.min(chatbotInput.scrollHeight, 100) + 'px';
         }
 
         chatbotInput.addEventListener('input', adjustTextareaHeight);
-
-        // Prevent textarea from being too small
         chatbotInput.addEventListener('focus', adjustTextareaHeight);
     }
-
-    // Initialize chatbot when DOM is loaded
-    // If you're adding this to the existing script.js DOMContentLoaded listener,
-    // just call initializeChatbot() at the end of that listener
-    // Otherwise, use this:
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initializeChatbot);
     } else {
